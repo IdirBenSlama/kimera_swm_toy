@@ -1,0 +1,21 @@
+pair_id,text1,text2,label,lang,type
+19,Mountains are tall,Libraries are quiet,False,en,neutral
+5,Snow is white,Snow is black,True,en,contradiction
+14,Trees have leaves,Computers process data,False,en,neutral
+4,Fire is hot,Fire is cold,True,en,contradiction
+9,Fish live in water,Fish live on land,True,en,contradiction
+13,The sun is hot,Music is enjoyable,False,en,neutral
+15,Fish live in water,Cars have wheels,False,en,neutral
+18,Dogs are loyal,Pizza is delicious,False,en,neutral
+6,Cats are mammals,Cats are reptiles,True,en,contradiction
+12,Water is wet,Books contain knowledge,False,en,neutral
+17,Flowers bloom in spring,People need sleep,False,en,neutral
+10,The sky is blue,Cats are mammals,False,en,neutral
+1,Water boils at 100°C,Water boils at 50°C,True,en,contradiction
+11,Paris is in France,Mathematics is useful,False,en,neutral
+2,Birds can fly,Birds cannot fly,True,en,contradiction
+16,Snow is cold,Phones can make calls,False,en,neutral
+7,Paris is in France,Paris is in Germany,True,en,contradiction
+8,The sky is blue,The sky is green,True,en,contradiction
+0,The Earth is round,The Earth is flat,True,en,contradiction
+3,The sun is hot,The sun is cold,True,en,contradiction
