@@ -96,8 +96,9 @@ def test_metrics():
         print(f"[OK] PR stats - AUPR: {pr['aupr']:.3f}")
         
         # Test bootstrap
-        ci = bootstrap_ci(y_true, y_scores, metric='auroc', n_bootstrap=50)
-        print(f"[OK] Bootstrap CI: [{ci['ci_lower']:.3f}, {ci['ci_upper']:.3f}]")
+        auroc_fn = lambda yt, ys: roc_stats(yt, ys)["auroc"]
+        ci_lower, ci_upper = bootstrap_ci(auroc_fn, y_true, y_scores, n=50, seed=42)
+        print(f"[OK] Bootstrap CI: [{ci_lower:.3f}, {ci_upper:.3f}]")
         
         print("\n[SUCCESS] All metrics working!")
         return True

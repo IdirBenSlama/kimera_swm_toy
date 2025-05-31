@@ -1,11 +1,6 @@
 pair_id,text1,text2,kimera_contradiction,kimera_confidence,kimera_reasoning,gpt4o_contradiction,gpt4o_confidence,gpt4o_reasoning,agreement
-0,Berlin is the capital of France.,Mount Everest is the tallest mountain.,True,0.9609868004918098,"Resonance: 0.039, Threshold: 0.3",N/A,N/A,N/A,N/A
-1,A carrot is a fruit.,Birds can fly.,True,0.911429762840271,"Resonance: 0.089, Threshold: 0.3",N/A,N/A,N/A,N/A
-2,Water is dry.,Water is wet.,False,0.8836225867271423,"Resonance: 0.884, Threshold: 0.3",N/A,N/A,N/A,N/A
-3,Le chat est assis sur le tapis.,Fire is hot.,True,0.9701533988118172,"Resonance: 0.030, Threshold: 0.3",N/A,N/A,N/A,N/A
-4,Fire is cold.,The sky is green.,True,0.7639564126729965,"Resonance: 0.236, Threshold: 0.3",N/A,N/A,N/A,N/A
-5,The sun rises in the east.,The cat sat on the mat.,True,1.0394180677831173,"Resonance: -0.039, Threshold: 0.3",N/A,N/A,N/A,N/A
-6,The sky is blue.,A canine pursued the sphere.,True,0.835288941860199,"Resonance: 0.165, Threshold: 0.3",N/A,N/A,N/A,N/A
-7,The feline was resting upon the rug.,Penguins cannot fly.,True,0.8874513432383537,"Resonance: 0.113, Threshold: 0.3",N/A,N/A,N/A,N/A
-8,Spiders have eight legs.,An apple is a fruit.,True,0.9675952643156052,"Resonance: 0.032, Threshold: 0.3",N/A,N/A,N/A,N/A
-9,Spiders have six legs.,Paris is the capital of France.,True,1.0366947278380394,"Resonance: -0.037, Threshold: 0.3",N/A,N/A,N/A,N/A
+0,The cat sat on the mat.,Mount Everest is the tallest mountain.,True,0.9076826050877571,"Resonance: 0.092, Threshold: 0.3",N/A,N/A,N/A,N/A
+1,The sky is blue.,The sky is green.,False,0.6730669140815735,"Resonance: 0.673, Threshold: 0.3",N/A,N/A,N/A,N/A
+2,Le chat est assis sur le tapis.,A canine pursued the sphere.,True,0.969485204666853,"Resonance: 0.031, Threshold: 0.3",N/A,N/A,N/A,N/A
+3,K2 is the tallest mountain.,Water is dry.,True,0.9565625190734863,"Resonance: 0.043, Threshold: 0.3",N/A,N/A,N/A,N/A
+4,Fire is cold.,Spiders have six legs.,True,0.8528294861316681,"Resonance: 0.147, Threshold: 0.3",N/A,N/A,N/A,N/A

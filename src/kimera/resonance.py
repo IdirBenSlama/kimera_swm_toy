@@ -1,4 +1,5 @@
 import numpy as np
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from .rope import rope_buffer
 from .scar import fetch_scars  # <- only fetch_scars now
