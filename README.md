@@ -1,12 +1,13 @@
 
-Kimera‑SWM Toy Prototype **v0.7.1**
+Kimera‑SWM Toy Prototype **v0.7.3**
 ===================================
 
 This repository holds a minimal, CPU‑only prototype implementing the
 core concepts defined in *Kimera‑SWM Micro‑Specification v0.1*.
 
 Features batch processing with latency and memory monitoring for large datasets.
-**New in v0.7.1**: Echo-form implementation with stable hashing and enhanced observability.
+**New in v0.7.3**: CLS lattice storage with cls_event tracking and time-decay weighting (τ = 14 days).
+**New in v0.7.2**: EchoForm core implementation with stable hashing and enhanced observability.
 **New in v0.7.0**: Negation fix with environment variable control and comprehensive benchmarking.
 **New in v0.3.0**: Memory-optimized streaming for handling 10k+ pairs efficiently.
 
