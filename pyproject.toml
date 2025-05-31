@@ -1,0 +1,33 @@
+
+[tool.poetry]
+name = "kimera_swm"
+version = "0.7.0"
+description = "Toy prototype of the Kimera‑SWM semantic–symbolic reactor"
+readme = "README.md"
+
+# Tell Poetry where the package lives
+packages = [
+  { include = "kimera", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+numpy = "^1.26"
+scikit-learn = "^1.5"
+sentence-transformers = "^2.3"
+pytest = "^8.0"
+pytest-asyncio = "^0.21.0"
+requests = "^2.31"
+psutil = "^5.9"
+tqdm = "^4.66"
+openai = "^1.0"
+httpx = "^0.25"
+matplotlib = "^3.7"
+pandas = "^2.0"
+joblib = "^1.4"
+pyyaml = "^6.0"
+
+[tool.pytest.ini_options]
+markers = [
+    "asyncio: marks tests as async (deselect with '-m \"not asyncio\"')",
+]

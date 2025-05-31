@@ -1,0 +1,14 @@
+{
+    "workbench.colorTheme": "Default Dark+",
+    "editor.minimap.enabled": false,
+    "editor.wrappingIndent": "indent",
+    "editor.overviewRulerBorder": false,
+    "editor.lineHeight": 1.6,
+    "editor.fontFamily": "Consolas, 'Courier New', monospace",
+    "editor.renderLineHighlight": "gutter",
+    "breadcrumbs.enabled": true,
+    "workbench.activityBar.visible": true,
+    "workbench.statusBar.visible": true,
+    "window.menuBarVisibility": "compact",
+    "files.autoSave": "afterDelay"
+}

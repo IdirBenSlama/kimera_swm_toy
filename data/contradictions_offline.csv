@@ -1,0 +1,201 @@
+id,lang,text,label_contradict_id
+ar_1_true,ar,الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.,ar_1_false
+en_2_false,en,London is the capital city of France.,en_2_true
+ar_0_true,ar,الأرض كروية الشكل تقريباً.,ar_0_false
+ar_0_false,ar,الأرض مسطحة.,ar_0_true
+fr_0_false,fr,La Terre est plate.,fr_0_true
+ar_3_true,ar,الشمس تشرق من الشرق.,ar_3_false
+en_0_false,en,The Earth is flat.,en_0_true
+en_3_false,en,The sun rises in the west.,en_3_true
+fr_0_false,fr,La Terre est plate.,fr_0_true
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+ar_2_true,ar,باريس هي عاصمة فرنسا.,ar_2_false
+ar_2_true,ar,باريس هي عاصمة فرنسا.,ar_2_false
+fr_1_false,fr,L'eau bout à 50 degrés Celsius au niveau de la mer.,fr_1_true
+ar_3_false,ar,الشمس تشرق من الغرب.,ar_3_true
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+en_2_true,en,Paris is the capital city of France.,en_2_false
+en_3_true,en,The sun rises in the east.,en_3_false
+ar_1_false,ar,الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.,ar_1_true
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+fr_2_true,fr,Paris est la capitale de la France.,fr_2_false
+ar_0_true,ar,الأرض كروية الشكل تقريباً.,ar_0_false
+fr_1_true,fr,L'eau bout à 100 degrés Celsius au niveau de la mer.,fr_1_false
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+en_3_false,en,The sun rises in the west.,en_3_true
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+en_3_false,en,The sun rises in the west.,en_3_true
+en_4_true,en,Most birds are capable of flight.,en_4_false
+fr_0_false,fr,La Terre est plate.,fr_0_true
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+fr_3_false,fr,Le soleil se lève à l'ouest.,fr_3_true
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+fr_1_false,fr,L'eau bout à 50 degrés Celsius au niveau de la mer.,fr_1_true
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+en_3_true,en,The sun rises in the east.,en_3_false
+fr_1_false,fr,L'eau bout à 50 degrés Celsius au niveau de la mer.,fr_1_true
+ar_2_true,ar,باريس هي عاصمة فرنسا.,ar_2_false
+en_5_true,en,Fire produces heat when burning.,en_5_false
+ar_3_true,ar,الشمس تشرق من الشرق.,ar_3_false
+en_3_false,en,The sun rises in the west.,en_3_true
+ar_0_true,ar,الأرض كروية الشكل تقريباً.,ar_0_false
+ar_3_false,ar,الشمس تشرق من الغرب.,ar_3_true
+fr_0_true,fr,La Terre est approximativement sphérique.,fr_0_false
+fr_1_false,fr,L'eau bout à 50 degrés Celsius au niveau de la mer.,fr_1_true
+fr_2_false,fr,Londres est la capitale de la France.,fr_2_true
+ar_3_false,ar,الشمس تشرق من الغرب.,ar_3_true
+en_0_false,en,The Earth is flat.,en_0_true
+fr_1_true,fr,L'eau bout à 100 degrés Celsius au niveau de la mer.,fr_1_false
+ar_3_false,ar,الشمس تشرق من الغرب.,ar_3_true
+ar_2_false,ar,لندن هي عاصمة فرنسا.,ar_2_true
+en_4_true,en,Most birds are capable of flight.,en_4_false
+en_4_true,en,Most birds are capable of flight.,en_4_false
+ar_1_false,ar,الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.,ar_1_true
+fr_2_false,fr,Londres est la capitale de la France.,fr_2_true
+fr_2_true,fr,Paris est la capitale de la France.,fr_2_false
+fr_0_false,fr,La Terre est plate.,fr_0_true
+en_3_true,en,The sun rises in the east.,en_3_false
+ar_0_false,ar,الأرض مسطحة.,ar_0_true
+fr_0_true,fr,La Terre est approximativement sphérique.,fr_0_false
+fr_1_true,fr,L'eau bout à 100 degrés Celsius au niveau de la mer.,fr_1_false
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+fr_2_true,fr,Paris est la capitale de la France.,fr_2_false
+ar_0_false,ar,الأرض مسطحة.,ar_0_true
+fr_2_true,fr,Paris est la capitale de la France.,fr_2_false
+en_0_false,en,The Earth is flat.,en_0_true
+fr_0_true,fr,La Terre est approximativement sphérique.,fr_0_false
+en_5_false,en,Fire produces cold when burning.,en_5_true
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+en_4_false,en,No birds are capable of flight.,en_4_true
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+ar_1_false,ar,الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.,ar_1_true
+ar_3_true,ar,الشمس تشرق من الشرق.,ar_3_false
+en_2_true,en,Paris is the capital city of France.,en_2_false
+ar_0_false,ar,الأرض مسطحة.,ar_0_true
+en_5_true,en,Fire produces heat when burning.,en_5_false
+en_3_true,en,The sun rises in the east.,en_3_false
+ar_3_true,ar,الشمس تشرق من الشرق.,ar_3_false
+en_0_false,en,The Earth is flat.,en_0_true
+fr_3_true,fr,Le soleil se lève à l'est.,fr_3_false
+ar_1_true,ar,الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.,ar_1_false
+en_2_true,en,Paris is the capital city of France.,en_2_false
+en_2_true,en,Paris is the capital city of France.,en_2_false
+fr_2_false,fr,Londres est la capitale de la France.,fr_2_true
+ar_1_true,ar,الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.,ar_1_false
+fr_3_true,fr,Le soleil se lève à l'est.,fr_3_false
+en_2_false,en,London is the capital city of France.,en_2_true
+ar_0_false,ar,الأرض مسطحة.,ar_0_true
+ar_2_true,ar,باريس هي عاصمة فرنسا.,ar_2_false
+fr_1_false,fr,L'eau bout à 50 degrés Celsius au niveau de la mer.,fr_1_true
+en_5_false,en,Fire produces cold when burning.,en_5_true
+en_2_true,en,Paris is the capital city of France.,en_2_false
+en_3_true,en,The sun rises in the east.,en_3_false
+ar_2_false,ar,لندن هي عاصمة فرنسا.,ar_2_true
+en_3_true,en,The sun rises in the east.,en_3_false
+ar_2_false,ar,لندن هي عاصمة فرنسا.,ar_2_true
+en_5_false,en,Fire produces cold when burning.,en_5_true
+fr_1_false,fr,L'eau bout à 50 degrés Celsius au niveau de la mer.,fr_1_true
+fr_3_false,fr,Le soleil se lève à l'ouest.,fr_3_true
+fr_3_false,fr,Le soleil se lève à l'ouest.,fr_3_true
+en_4_true,en,Most birds are capable of flight.,en_4_false
+fr_3_true,fr,Le soleil se lève à l'est.,fr_3_false
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+fr_0_false,fr,La Terre est plate.,fr_0_true
+fr_0_false,fr,La Terre est plate.,fr_0_true
+en_5_true,en,Fire produces heat when burning.,en_5_false
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+ar_1_false,ar,الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.,ar_1_true
+en_4_false,en,No birds are capable of flight.,en_4_true
+fr_3_false,fr,Le soleil se lève à l'ouest.,fr_3_true
+en_2_false,en,London is the capital city of France.,en_2_true
+ar_3_true,ar,الشمس تشرق من الشرق.,ar_3_false
+fr_3_false,fr,Le soleil se lève à l'ouest.,fr_3_true
+en_5_true,en,Fire produces heat when burning.,en_5_false
+fr_1_true,fr,L'eau bout à 100 degrés Celsius au niveau de la mer.,fr_1_false
+ar_2_true,ar,باريس هي عاصمة فرنسا.,ar_2_false
+en_4_false,en,No birds are capable of flight.,en_4_true
+ar_0_true,ar,الأرض كروية الشكل تقريباً.,ar_0_false
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+fr_2_true,fr,Paris est la capitale de la France.,fr_2_false
+en_5_true,en,Fire produces heat when burning.,en_5_false
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+en_2_false,en,London is the capital city of France.,en_2_true
+en_5_false,en,Fire produces cold when burning.,en_5_true
+ar_3_true,ar,الشمس تشرق من الشرق.,ar_3_false
+ar_1_true,ar,الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.,ar_1_false
+fr_0_true,fr,La Terre est approximativement sphérique.,fr_0_false
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+fr_3_true,fr,Le soleil se lève à l'est.,fr_3_false
+en_2_false,en,London is the capital city of France.,en_2_true
+en_2_false,en,London is the capital city of France.,en_2_true
+ar_1_false,ar,الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.,ar_1_true
+fr_2_true,fr,Paris est la capitale de la France.,fr_2_false
+ar_1_false,ar,الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.,ar_1_true
+fr_0_true,fr,La Terre est approximativement sphérique.,fr_0_false
+ar_2_false,ar,لندن هي عاصمة فرنسا.,ar_2_true
+en_5_true,en,Fire produces heat when burning.,en_5_false
+en_3_false,en,The sun rises in the west.,en_3_true
+ar_2_true,ar,باريس هي عاصمة فرنسا.,ar_2_false
+fr_2_false,fr,Londres est la capitale de la France.,fr_2_true
+en_4_false,en,No birds are capable of flight.,en_4_true
+fr_2_false,fr,Londres est la capitale de la France.,fr_2_true
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+ar_2_false,ar,لندن هي عاصمة فرنسا.,ar_2_true
+ar_3_true,ar,الشمس تشرق من الشرق.,ar_3_false
+fr_3_true,fr,Le soleil se lève à l'est.,fr_3_false
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+en_2_false,en,London is the capital city of France.,en_2_true
+en_0_false,en,The Earth is flat.,en_0_true
+ar_1_true,ar,الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.,ar_1_false
+en_0_false,en,The Earth is flat.,en_0_true
+en_4_true,en,Most birds are capable of flight.,en_4_false
+fr_3_false,fr,Le soleil se lève à l'ouest.,fr_3_true
+en_0_true,en,The Earth is approximately spherical in shape.,en_0_false
+fr_1_true,fr,L'eau bout à 100 degrés Celsius au niveau de la mer.,fr_1_false
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+en_3_true,en,The sun rises in the east.,en_3_false
+fr_2_false,fr,Londres est la capitale de la France.,fr_2_true
+ar_0_true,ar,الأرض كروية الشكل تقريباً.,ar_0_false
+fr_3_false,fr,Le soleil se lève à l'ouest.,fr_3_true
+ar_1_false,ar,الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.,ar_1_true
+fr_1_false,fr,L'eau bout à 50 degrés Celsius au niveau de la mer.,fr_1_true
+en_3_false,en,The sun rises in the west.,en_3_true
+fr_1_true,fr,L'eau bout à 100 degrés Celsius au niveau de la mer.,fr_1_false
+fr_0_false,fr,La Terre est plate.,fr_0_true
+ar_1_true,ar,الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.,ar_1_false
+en_5_false,en,Fire produces cold when burning.,en_5_true
+fr_3_true,fr,Le soleil se lève à l'est.,fr_3_false
+en_4_false,en,No birds are capable of flight.,en_4_true
+ar_0_false,ar,الأرض مسطحة.,ar_0_true
+ar_0_true,ar,الأرض كروية الشكل تقريباً.,ar_0_false
+en_0_false,en,The Earth is flat.,en_0_true
+en_5_false,en,Fire produces cold when burning.,en_5_true
+fr_2_false,fr,Londres est la capitale de la France.,fr_2_true
+en_0_false,en,The Earth is flat.,en_0_true
+ar_2_true,ar,باريس هي عاصمة فرنسا.,ar_2_false
+en_2_true,en,Paris is the capital city of France.,en_2_false
+en_1_true,en,Water boils at 100 degrees Celsius at sea level.,en_1_false
+fr_0_true,fr,La Terre est approximativement sphérique.,fr_0_false
+fr_1_true,fr,L'eau bout à 100 degrés Celsius au niveau de la mer.,fr_1_false
+fr_0_true,fr,La Terre est approximativement sphérique.,fr_0_false
+en_5_true,en,Fire produces heat when burning.,en_5_false
+en_4_false,en,No birds are capable of flight.,en_4_true
+fr_2_true,fr,Paris est la capitale de la France.,fr_2_false
+en_5_false,en,Fire produces cold when burning.,en_5_true
+ar_3_false,ar,الشمس تشرق من الغرب.,ar_3_true
+en_1_false,en,Water boils at 50 degrees Celsius at sea level.,en_1_true
+ar_3_false,ar,الشمس تشرق من الغرب.,ar_3_true
+ar_2_false,ar,لندن هي عاصمة فرنسا.,ar_2_true
+fr_3_true,fr,Le soleil se lève à l'est.,fr_3_false
+en_4_true,en,Most birds are capable of flight.,en_4_false
+ar_2_false,ar,لندن هي عاصمة فرنسا.,ar_2_true
+en_4_true,en,Most birds are capable of flight.,en_4_false
+ar_1_true,ar,الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.,ar_1_false
+ar_0_true,ar,الأرض كروية الشكل تقريباً.,ar_0_false
+en_2_true,en,Paris is the capital city of France.,en_2_false
+en_3_false,en,The sun rises in the west.,en_3_true
+ar_0_false,ar,الأرض مسطحة.,ar_0_true
+en_4_false,en,No birds are capable of flight.,en_4_true
+ar_3_false,ar,الشمس تشرق من الغرب.,ar_3_true

@@ -1,0 +1,170 @@
+[
+  {
+    "id": "en_0_true",
+    "lang": "en",
+    "text": "The Earth is approximately spherical in shape.",
+    "label_contradict_id": "en_0_false"
+  },
+  {
+    "id": "en_0_false",
+    "lang": "en", 
+    "text": "The Earth is flat.",
+    "label_contradict_id": "en_0_true"
+  },
+  {
+    "id": "en_1_true",
+    "lang": "en",
+    "text": "Water boils at 100 degrees Celsius at sea level.",
+    "label_contradict_id": "en_1_false"
+  },
+  {
+    "id": "en_1_false",
+    "lang": "en",
+    "text": "Water boils at 50 degrees Celsius at sea level.",
+    "label_contradict_id": "en_1_true"
+  },
+  {
+    "id": "en_2_true",
+    "lang": "en",
+    "text": "Paris is the capital city of France.",
+    "label_contradict_id": "en_2_false"
+  },
+  {
+    "id": "en_2_false",
+    "lang": "en",
+    "text": "London is the capital city of France.",
+    "label_contradict_id": "en_2_true"
+  },
+  {
+    "id": "en_3_true",
+    "lang": "en",
+    "text": "The sun rises in the east.",
+    "label_contradict_id": "en_3_false"
+  },
+  {
+    "id": "en_3_false",
+    "lang": "en",
+    "text": "The sun rises in the west.",
+    "label_contradict_id": "en_3_true"
+  },
+  {
+    "id": "en_4_true",
+    "lang": "en",
+    "text": "Most birds are capable of flight.",
+    "label_contradict_id": "en_4_false"
+  },
+  {
+    "id": "en_4_false",
+    "lang": "en",
+    "text": "No birds are capable of flight.",
+    "label_contradict_id": "en_4_true"
+  },
+  {
+    "id": "en_5_true",
+    "lang": "en",
+    "text": "Fire produces heat when burning.",
+    "label_contradict_id": "en_5_false"
+  },
+  {
+    "id": "en_5_false",
+    "lang": "en",
+    "text": "Fire produces cold when burning.",
+    "label_contradict_id": "en_5_true"
+  },
+  {
+    "id": "fr_0_true",
+    "lang": "fr",
+    "text": "La Terre est approximativement sphérique.",
+    "label_contradict_id": "fr_0_false"
+  },
+  {
+    "id": "fr_0_false",
+    "lang": "fr",
+    "text": "La Terre est plate.",
+    "label_contradict_id": "fr_0_true"
+  },
+  {
+    "id": "fr_1_true",
+    "lang": "fr",
+    "text": "L'eau bout à 100 degrés Celsius au niveau de la mer.",
+    "label_contradict_id": "fr_1_false"
+  },
+  {
+    "id": "fr_1_false",
+    "lang": "fr",
+    "text": "L'eau bout à 50 degrés Celsius au niveau de la mer.",
+    "label_contradict_id": "fr_1_true"
+  },
+  {
+    "id": "fr_2_true",
+    "lang": "fr",
+    "text": "Paris est la capitale de la France.",
+    "label_contradict_id": "fr_2_false"
+  },
+  {
+    "id": "fr_2_false",
+    "lang": "fr",
+    "text": "Londres est la capitale de la France.",
+    "label_contradict_id": "fr_2_true"
+  },
+  {
+    "id": "fr_3_true",
+    "lang": "fr",
+    "text": "Le soleil se lève à l'est.",
+    "label_contradict_id": "fr_3_false"
+  },
+  {
+    "id": "fr_3_false",
+    "lang": "fr",
+    "text": "Le soleil se lève à l'ouest.",
+    "label_contradict_id": "fr_3_true"
+  },
+  {
+    "id": "ar_0_true",
+    "lang": "ar",
+    "text": "الأرض كروية الشكل تقريباً.",
+    "label_contradict_id": "ar_0_false"
+  },
+  {
+    "id": "ar_0_false",
+    "lang": "ar",
+    "text": "الأرض مسطحة.",
+    "label_contradict_id": "ar_0_true"
+  },
+  {
+    "id": "ar_1_true",
+    "lang": "ar",
+    "text": "الماء يغلي عند 100 درجة مئوية عند مستوى سطح البحر.",
+    "label_contradict_id": "ar_1_false"
+  },
+  {
+    "id": "ar_1_false",
+    "lang": "ar",
+    "text": "الماء يغلي عند 50 درجة مئوية عند مستوى سطح البحر.",
+    "label_contradict_id": "ar_1_true"
+  },
+  {
+    "id": "ar_2_true",
+    "lang": "ar",
+    "text": "باريس هي عاصمة فرنسا.",
+    "label_contradict_id": "ar_2_false"
+  },
+  {
+    "id": "ar_2_false",
+    "lang": "ar",
+    "text": "لندن هي عاصمة فرنسا.",
+    "label_contradict_id": "ar_2_true"
+  },
+  {
+    "id": "ar_3_true",
+    "lang": "ar",
+    "text": "الشمس تشرق من الشرق.",
+    "label_contradict_id": "ar_3_false"
+  },
+  {
+    "id": "ar_3_false",
+    "lang": "ar",
+    "text": "الشمس تشرق من الغرب.",
+    "label_contradict_id": "ar_3_true"
+  }
+]

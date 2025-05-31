@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Kimera Contradiction Explorer</title>
+<style>
+ body { 
+   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+   margin: 1rem; 
+   background: #f8f9fa;
+ }
+ .header {
+   background: white;
+   padding: 1rem;
+   border-radius: 8px;
+   margin-bottom: 1rem;
+   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ }
+ .controls {
+   display: flex;
+   gap: 1rem;
+   align-items: center;
+   flex-wrap: wrap;
+   margin-bottom: 1rem;
+ }
+ .controls > * {
+   padding: 0.5rem;
+   border: 1px solid #ddd;
+   border-radius: 4px;
+ }
+ .stats {
+   background: #e3f2fd;
+   padding: 0.5rem;
+   border-radius: 4px;
+   font-size: 0.9em;
+ }
+ table { 
+   border-collapse: collapse; 
+   width: 100%; 
+   background: white;
+   border-radius: 8px;
+   overflow: hidden;
+   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ }
+ th, td { 
+   border: 1px solid #e0e0e0; 
+   padding: 0.6rem;
+   text-align: left;
+ }
+ th {
+   background: #f5f5f5;
+   font-weight: 600;
+ }
+ .agree { background: #e8f5e8; }
+ .disagree { background: #ffeaea; }
+ .text-cell {
+   max-width: 300px;
+   word-wrap: break-word;
+   font-size: 0.9em;
+ }
+ .conf-cell {
+   text-align: center;
+   font-family: monospace;
+ }
+ .note-cell {
+   min-width: 150px;
+   background: #fffacd;
+ }
+ .note-cell[contenteditable]:focus {
+   outline: 2px solid #4CAF50;
+   background: white;
+ }
+ button {
+   background: #4CAF50;
+   color: white;
+   border: none;
+   padding: 0.5rem 1rem;
+   border-radius: 4px;
+   cursor: pointer;
+   font-weight: 500;
+ }
+ button:hover {
+   background: #45a049;
+ }
+ .file-input {
+   background: #2196F3;
+   color: white;
+   padding: 0.5rem 1rem;
+   border-radius: 4px;
+   cursor: pointer;
+   display: inline-block;
+ }
+ .file-input input {
+   display: none;
+ }
+ .empty-state {
+   text-align: center;
+   padding: 3rem;
+   color: #666;
+ }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>[EXPLORER] Kimera Contradiction Explorer</h1>
+  <p>Load benchmark results, filter by patterns, and annotate interesting cases for analysis.</p>
+</div>
+
+<div class="controls">
+  <label class="file-input">
+    [LOAD] Load CSV
+    <input type="file" id="csvFile" accept=".csv"/>
+  </label>
+  
+  <select id="lang">
+    <option value="">All languages</option>
+  </select>
+  
+  <select id="bucket">
+    <option value="">All lengths</option>
+    <option value="short">Short (&lt;50 chars)</option>
+    <option value="medium">Medium (50-150)</option>
+    <option value="long">Long (&gt;150)</option>
+  </select>
+  
+  <label>
+    <input type="checkbox" id="onlyDisagree"> Only disagreements
+  </label>
+  
+  <button id="exportBtn" disabled>[EXPORT] Export Notes</button>
+  
+  <div class="stats" id="stats">No data loaded</div>
+</div>
+
+<div id="tableContainer">
+  <div class="empty-state">
+    <h3>[INFO] Load a benchmark_results.csv file to start exploring</h3>
+    <p>Expected columns: text1, text2, lang, kimera_pred, kimera_conf, gpt_pred (optional)</p>
+  </div>
+</div>
+
+<script>
+// Global data storage
+let allData = [];
+let filteredData = [];
+
+// Utility functions
+function parseCSV(txt) {
+  const lines = txt.trim().split(/\r?\n/);
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  const rows = lines.slice(1).map(line => {
+    // Simple CSV parsing - handles basic cases
+    const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+    const obj = {};
+    headers.forEach((header, i) => {
+      obj[header] = values[i] || '';
+    });
+    return obj;
+  });
+  return rows;
+}
+
+function lengthBucket(text) {
+  const len = text.length;
+  return len < 50 ? 'short' : len < 150 ? 'medium' : 'long';
+}
+
+function updateStats() {
+  const total = filteredData.length;
+  const disagreements = filteredData.filter(r => {
+    if (!r.gpt_pred) return false;
+    return r.kimera_pred !== r.gpt_pred;
+  }).length;
+  
+  const statsEl = document.getElementById('stats');
+  if (total === 0) {
+    statsEl.textContent = 'No data matches filters';
+  } else {
+    const disagreeRate = disagreements > 0 ? Math.round(100 * disagreements / total) : 0;
+    statsEl.textContent = `Showing ${total} pairs • ${disagreements} disagreements (${disagreeRate}%)`;
+  }
+}
+
+function populateLanguages() {
+  const langSelect = document.getElementById('lang');
+  // Clear existing options except first
+  while (langSelect.children.length > 1) {
+    langSelect.removeChild(langSelect.lastChild);
+  }
+  
+  const languages = [...new Set(allData.map(r => r.lang))].filter(Boolean).sort();
+  languages.forEach(lang => {
+    const option = document.createElement('option');
+    option.value = lang;
+    option.textContent = lang.toUpperCase();
+    langSelect.appendChild(option);
+  });
+}
+
+function applyFilters() {
+  const lang = document.getElementById('lang').value;
+  const bucket = document.getElementById('bucket').value;
+  const onlyDisagree = document.getElementById('onlyDisagree').checked;
+  
+  filteredData = allData.filter(row => {
+    // Language filter
+    if (lang && row.lang !== lang) return false;
+    
+    // Length bucket filter
+    if (bucket) {
+      const textBucket = lengthBucket(row.text1 || '');
+      if (textBucket !== bucket) return false;
+    }
+    
+    // Disagreement filter
+    if (onlyDisagree) {
+      if (!row.gpt_pred) return false;
+      if (row.kimera_pred === row.gpt_pred) return false;
+    }
+    
+    return true;
+  });
+  
+  updateStats();
+  renderTable();
+}
+
+function renderTable() {
+  const container = document.getElementById('tableContainer');
+  
+  if (filteredData.length === 0) {
+    container.innerHTML = '<div class="empty-state"><h3>No results match your filters</h3><p>Try adjusting the language, length, or disagreement filters.</p></div>';
+    return;
+  }
+  
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Lang</th>
+        <th>Text 1</th>
+        <th>Text 2</th>
+        <th>Kimera</th>
+        <th>Conf</th>
+        <th>GPT</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  
+  const tbody = table.querySelector('tbody');
+  
+  filteredData.forEach((row, index) => {
+    const hasGpt = row.gpt_pred && row.gpt_pred.trim();
+    const agree = !hasGpt || row.kimera_pred === row.gpt_pred;
+    
+    const tr = document.createElement('tr');
+    tr.className = agree ? 'agree' : 'disagree';
+    tr.dataset.originalIndex = allData.indexOf(row);
+    
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${row.lang || '-'}</td>
+      <td class="text-cell">${row.text1 || ''}</td>
+      <td class="text-cell">${row.text2 || ''}</td>
+      <td class="conf-cell">${row.kimera_pred || '-'}</td>
+      <td class="conf-cell">${row.kimera_conf ? (+row.kimera_conf).toFixed(2) : '-'}</td>
+      <td class="conf-cell">${row.gpt_pred || '-'}</td>
+      <td class="note-cell" contenteditable="true" placeholder="Add notes..."></td>
+    `;
+    
+    tbody.appendChild(tr);
+  });
+  
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+
+function exportNotes() {
+  const rows = [['original_index', 'text1_preview', 'text2_preview', 'kimera_pred', 'gpt_pred', 'notes']];
+  
+  document.querySelectorAll('#tableContainer tbody tr').forEach(tr => {
+    const originalIndex = tr.dataset.originalIndex;
+    const cells = tr.children;
+    const notes = cells[7].textContent.trim();
+    
+    if (notes) {
+      const text1 = cells[2].textContent.substring(0, 50) + '...';
+      const text2 = cells[3].textContent.substring(0, 50) + '...';
+      const kimeraPred = cells[4].textContent;
+      const gptPred = cells[6].textContent;
+      
+      rows.push([originalIndex, text1, text2, kimeraPred, gptPred, notes]);
+    }
+  });
+  
+  if (rows.length === 1) {
+    alert('No notes to export. Add some notes to interesting cases first!');
+    return;
+  }
+  
+  const csvContent = rows.map(row => 
+    row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `kimera_notes_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Event listeners
+document.getElementById('csvFile').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  file.text().then(text => {
+    try {
+      allData = parseCSV(text);
+      console.log('Loaded data:', allData.length, 'rows');
+      console.log('Sample row:', allData[0]);
+      
+      populateLanguages();
+      applyFilters();
+      
+      document.getElementById('exportBtn').disabled = false;
+      
+    } catch (error) {
+      alert('Error parsing CSV: ' + error.message);
+      console.error('CSV parse error:', error);
+    }
+  });
+});
+
+['lang', 'bucket', 'onlyDisagree'].forEach(id => {
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+document.getElementById('exportBtn').addEventListener('click', exportNotes);
+
+// Initialize
+updateStats();
+</script>
+
+</body>
+</html>
