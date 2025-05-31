@@ -1,0 +1,4 @@
+# file: C:\Users\bensl\Downloads\kimera_swm_toy\src\kimera\geoid.py
+# hypothesis_version: 6.132.0
+
+[0.05, 0.6, 0.7, 0.75, 0.8, 'all-MiniLM-L6-v2', 'ar', 'default', 'en', 'fr']

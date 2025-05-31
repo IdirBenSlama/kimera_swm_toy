@@ -195,3 +195,8 @@ class EchoForm:
     def __repr__(self) -> str:
         """String representation for debugging"""
         return f"EchoForm(anchor='{self.anchor}', domain='{self.domain}', phase='{self.phase}', terms={len(self.terms)})"
+
+
+# Re-export init_geoid for legacy tests
+from .geoid import init_geoid
+__all__ = ["EchoForm", "init_geoid"]

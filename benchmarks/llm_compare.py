@@ -93,7 +93,7 @@ def stream_dataset_pairs(dataset_path: Path, max_pairs: int, chunk_size: int = 1
             
     except ImportError:
         # Fallback to standard CSV reader
-        e("⚠️  Pandas not available, using standard CSV reader (slower for large files)")
+        log("⚠️  Pandas not available, using standard CSV reader (slower for large files)")
         
         with open(dataset_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
@@ -283,11 +283,11 @@ def run_benchmark(dataset_path: Path, api_key: Optional[str] = None, model: str 
                  async_concurrent: int = 0) -> Dict:
     """Run full benchmark comparison."""
     
-    e(f"📂 Loading dataset: {dataset_path}")
+    log(f"📂 Loading dataset: {dataset_path}")
     
     # Use efficient loading for large datasets
     test_pairs = load_dataset_efficiently(dataset_path, max_pairs)
-    e(f"✅ Testing {len(test_pairs)} pairs")
+    log(f"✅ Testing {len(test_pairs)} pairs")
     
     # Initialize benchmarks
     kimera = KimeraBenchmark()
@@ -295,17 +295,17 @@ def run_benchmark(dataset_path: Path, api_key: Optional[str] = None, model: str 
     
     if not kimera_only:
         if not OPENAI_AVAILABLE:
-            e("⚠️  OpenAI not available. Running Kimera-only mode.")
+            log("⚠️  OpenAI not available. Running Kimera-only mode.")
             kimera_only = True
         elif not api_key:
-            e("⚠️  No API key provided. Running Kimera-only mode.")
+            log("⚠️  No API key provided. Running Kimera-only mode.")
             kimera_only = True
         else:
             try:
                 gpt4o = GPT4oBenchmark(api_key, model)
                 print(f"✓ GPT-4o benchmark initialized (model: {model})")
-            except Exception as e:
-                e(f"⚠️  GPT-4o initialization failed: {e}")
+            except Exception as err:
+                log(f"⚠️  GPT-4o initialization failed: {err}")
                 print("Running Kimera-only mode.")
                 kimera_only = True
     
@@ -654,7 +654,7 @@ def main():
     # Validate dataset path
     dataset_path = Path(args.dataset)
     if not dataset_path.exists():
-        e(f"❌ Dataset not found: {dataset_path}")
+        log(f"❌ Dataset not found: {dataset_path}")
         print("Available datasets:")
         data_dir = Path("data")
         if data_dir.exists():
@@ -705,8 +705,8 @@ def main():
                 
                 print("✓ Comprehensive metrics generated!")
                 
-            except Exception as e:
-                e(f"⚠️  Failed to generate metrics: {e}")
+            except Exception as err:
+                log(f"⚠️  Failed to generate metrics: {err}")
         
         # Create visualization
         if not args.no_viz and not results["kimera_only"]:
@@ -716,10 +716,10 @@ def main():
         return 0
         
     except KeyboardInterrupt:
-        e("\n❌ Benchmark interrupted by user")
+        log("\n❌ Benchmark interrupted by user")
         return 1
-    except Exception as e:
-        e(f"❌ Benchmark failed: {e}")
+    except Exception as err:
+        log(f"❌ Benchmark failed: {err}")
         return 1
 
 

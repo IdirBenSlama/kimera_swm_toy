@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "kimera_swm"
-version = "0.7.0"
+version = "0.7.4"
 description = "Toy prototype of the Kimera‑SWM semantic–symbolic reactor"
 readme = "README.md"
 
@@ -26,6 +26,8 @@ matplotlib = "^3.7"
 pandas = "^2.0"
 joblib = "^1.4"
 pyyaml = "^6.0"
+duckdb = "^0.9.0"
+hypothesis = "^6.0"
 
 [tool.pytest.ini_options]
 markers = [

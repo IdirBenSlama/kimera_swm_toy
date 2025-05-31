@@ -125,7 +125,7 @@ def reactor_cycle_parallel(geoids: List[Geoid], workers: Optional[int] = None, c
 
     # Process batches in parallel
     with Pool(workers) as pool:
-        scar_counts = pool.map(_run_cycle, batches)
+        scar_counts = pool.starmap(_run_cycle, [(batch,) for batch in batches])
 
     # Calculate performance metrics
     delta_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2) - rss0

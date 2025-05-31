@@ -1,0 +1,6 @@
+pair_id,text1,text2,kimera_contradiction,kimera_confidence,kimera_reasoning,gpt4o_contradiction,gpt4o_confidence,gpt4o_reasoning,agreement
+1,Birds can fly,Birds cannot fly,True,0.85,Negation detected,True,0.9,Clear contradiction,True
+2,Snow is white,Snow is black,False,0.65,Color difference,True,0.95,Opposite colors,False
+3,The sky is blue,The ocean is blue,False,0.75,Similar color,False,0.8,No contradiction,True
+4,I like cats,I don't like cats,True,0.9,Negation penalty applied,True,0.95,Direct contradiction,True
+5,Water boils at 100°C,Water boils at 50°C,False,0.6,Similar structure,True,0.85,Different temperatures,False

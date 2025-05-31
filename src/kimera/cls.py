@@ -1,19 +1,19 @@
 """
 CLS (Contradiction Lattice System) integration with EchoForm
 Live lattice resolution with EchoForm storage and cls_event tracking
+Now with persistent DuckDB storage backend
 """
 from .echoform import EchoForm
 from .geoid import Geoid
+from .storage import get_storage
 import time
 from typing import List, Dict, Any
-
-# In-memory storage for EchoForms (in production this would be persistent)
-_lattice_forms: Dict[str, EchoForm] = {}
 
 
 def lattice_resolve(geo_a: Geoid, geo_b: Geoid) -> float:
     """
     Live CLS lattice resolution with EchoForm storage and cls_event tracking
+    Now uses persistent DuckDB storage backend
     
     Args:
         geo_a: First geoid for lattice resolution
@@ -22,13 +22,16 @@ def lattice_resolve(geo_a: Geoid, geo_b: Geoid) -> float:
     Returns:
         Intensity sum from the stored EchoForm
     """
+    storage = get_storage()
+    
     # Create unique anchor for this lattice pair
     anchor = f"{geo_a.gid}_{geo_b.gid}"
     
     # Check if we already have a form for this pair
-    if anchor in _lattice_forms:
+    existing_form = storage.fetch_form(anchor)
+    
+    if existing_form:
         # Existing form - append cls_event term
-        existing_form = _lattice_forms[anchor]
         existing_form.add_term(
             symbol="cls_event",
             role="resonance_trigger",
@@ -36,7 +39,7 @@ def lattice_resolve(geo_a: Geoid, geo_b: Geoid) -> float:
             timestamp=time.time(),
             event_type="lattice_resolve_repeat"
         )
-        _lattice_forms[anchor] = existing_form
+        storage.update_form(existing_form)
         return existing_form.intensity_sum()
     else:
         # New form - create and store
@@ -61,7 +64,7 @@ def lattice_resolve(geo_a: Geoid, geo_b: Geoid) -> float:
         )
         
         # Store the form
-        _lattice_forms[anchor] = echo
+        storage.store_form(echo)
         
         return echo.intensity_sum()
 
@@ -69,6 +72,7 @@ def lattice_resolve(geo_a: Geoid, geo_b: Geoid) -> float:
 def create_lattice_form(anchor: str, geo_a: Geoid, geo_b: Geoid) -> EchoForm:
     """
     Create a full EchoForm for lattice operations and store it
+    Now uses persistent DuckDB storage backend
     
     Args:
         anchor: Custom anchor for the form
@@ -78,6 +82,8 @@ def create_lattice_form(anchor: str, geo_a: Geoid, geo_b: Geoid) -> EchoForm:
     Returns:
         EchoForm configured for lattice operations
     """
+    storage = get_storage()
+    
     form = EchoForm(
         anchor=anchor,
         domain="cls",
@@ -113,31 +119,44 @@ def create_lattice_form(anchor: str, geo_a: Geoid, geo_b: Geoid) -> EchoForm:
     )
     
     # Store the form
-    _lattice_forms[anchor] = form
+    storage.store_form(form)
     return form
 
 
 def get_stored_forms() -> Dict[str, EchoForm]:
     """
     Get all stored lattice forms (for testing/debugging)
+    Now retrieves from persistent storage
     
     Returns:
         Dictionary of stored EchoForms keyed by anchor
     """
-    return _lattice_forms.copy()
+    storage = get_storage()
+    forms_metadata = storage.list_forms(limit=1000, domain="cls")
+    
+    result = {}
+    for meta in forms_metadata:
+        form = storage.fetch_form(meta["anchor"])
+        if form:
+            result[meta["anchor"]] = form
+    
+    return result
 
 
 def clear_stored_forms() -> None:
     """
     Clear all stored lattice forms (for testing)
+    Now clears from persistent storage
     """
-    global _lattice_forms
-    _lattice_forms.clear()
+    storage = get_storage()
+    # For testing, we'll delete all CLS domain forms
+    storage._conn.execute("DELETE FROM echoforms WHERE domain = 'cls'")
 
 
 def get_form_by_anchor(anchor: str) -> EchoForm:
     """
     Retrieve a specific stored form by anchor
+    Now retrieves from persistent storage
     
     Args:
         anchor: The anchor key for the form
@@ -148,4 +167,8 @@ def get_form_by_anchor(anchor: str) -> EchoForm:
     Raises:
         KeyError: If anchor not found
     """
-    return _lattice_forms[anchor]
+    storage = get_storage()
+    form = storage.fetch_form(anchor)
+    if form is None:
+        raise KeyError(f"No form found with anchor: {anchor}")
+    return form

@@ -1,0 +1,4 @@
+# file: C:\Users\bensl\Downloads\kimera_swm_toy\src\kimera\reactor_mp.py
+# hypothesis_version: 6.132.0
+
+[200, 1000, 1024, 5000, 'Windows', 'chunks', 'geoids', 'latency_ms', 'mem_mb', 'mode', 'multiprocessing', 'new_scars', 'threading', 'workers']

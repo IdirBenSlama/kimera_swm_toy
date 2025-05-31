@@ -1,0 +1,4 @@
+# file: C:\Users\bensl\Downloads\kimera_swm_toy\src\kimera\reactor.py
+# hypothesis_version: 6.132.0
+
+[200, 1000, 1024, 'Reactor cycles', 'chunk', 'geoids', 'latency_ms', 'mem_mb', 'new_scars', 'pairs', 'reactor_cycle']

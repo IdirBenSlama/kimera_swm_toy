@@ -1,0 +1,4 @@
+# file: C:\Users\bensl\Downloads\kimera_swm_toy\src\kimera\resonance.py
+# hypothesis_version: 6.132.0
+
+[-1.0, 0.0, 0.25, 0.3, '1', 'KIMERA_NEGATION_FIX', '\\w+', "aren't", "can't", 'cannot', "didn't", "doesn't", "don't", "hadn't", "hasn't", "haven't", "isn't", 'never', 'no', 'not', "wasn't", "weren't", "won't"]

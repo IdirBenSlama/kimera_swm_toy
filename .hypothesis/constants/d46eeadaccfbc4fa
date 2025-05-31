@@ -1,0 +1,4 @@
+# file: C:\Users\bensl\Downloads\kimera_swm_toy\src\kimera\cache.py
+# hypothesis_version: 6.132.0
+
+[1024, '*.pkl', '.cache', 'KIMERA_CACHE_DIR', 'cache_dir', 'cache_file_exists', 'cache_file_size_mb', 'embedding_cache_size', 'kimera_cache', 'resonance_cache_size', '|']

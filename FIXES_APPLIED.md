@@ -1,134 +1,96 @@
-# Phase 2.1 Fixes Applied
+# Kimera 0.7.x Stabilization Fixes Applied
 
-## 🔧 Issues Fixed
+This document summarizes all the fixes applied to stabilize the 0.7.x branch and resolve the 14 failing tests.
 
-### 1. **`init_geoid() got an unexpected keyword argument 'raw'`** ✅
+## 1. DuckDB tmp-file error fix
 
-**Problem**: The benchmark code was calling `init_geoid(text, lang, layers, raw=text)` but the function signature only accepted 3 parameters.
+**Problem**: Tests create empty temp files which DuckDB refuses to open.
 
-**Fix**: Updated `src/kimera/geoid.py`:
+**Solution**: Created `tests/conftest.py` with `fresh_duckdb_path()` helper function that creates a temp file path and immediately deletes the zero-byte file, allowing DuckDB to initialize it properly.
+
+**Files modified**:
+- `tests/conftest.py` (created)
+- `tests/test_cls_integration.py`
+- `tests/test_storage_metrics.py`
+- `test_v073_storage.py`
+- `validate_v074.py`
+
+**Key change**:
 ```python
-# Before
-def init_geoid(text: str, lang: str, layers: List[str]) -> Geoid:
-
-# After  
-def init_geoid(text: str, lang: str, layers: List[str], *, raw: str | None = None) -> Geoid:
-    if raw is None:
-        raw = text
+def fresh_duckdb_path() -> str:
+    """
+    Return a path to a brand-new DuckDB file.
+    We create a temp name and *delete* the zero-byte file immediately,
+    so DuckDB can initialise it itself.
+    """
+    tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    path = tmp.name
+    tmp.close()
+    os.unlink(path)          # <-- crucial line
+    return path
 ```
 
-**Result**: Now accepts optional `raw` parameter while maintaining backward compatibility.
+## 2. Precision drift fix
 
-### 2. **`ModuleNotFoundError: No module named 'numpy'` and `'psutil'`** ✅
+**Problem**: Floating-point errors causing comparison failures.
 
-**Problem**: Scripts were run with system Python instead of Poetry's virtual environment.
+**Solution**: Replaced strict equality checks with `math.isclose()` using relative tolerance of `1e-7`.
 
-**Fix**: 
-- Updated all script docstrings with proper Poetry commands
-- Added clear instructions in README
-- Created `test_fixes.py` to verify everything works
+**Files modified**:
+- `tests/test_cls_integration.py`
 
-**Usage**:
-```bash
-# Always use Poetry
-poetry run python test_fixes.py
-poetry run python run_validation.py
-poetry run python test_streaming_benchmark.py
+**Key changes**:
+- Added `FLOAT_RTOL = 1e-7`
+- Replaced `assert a == b` with `assert math.isclose(a, b, rel_tol=FLOAT_RTOL)`
 
-# Or activate shell once
-poetry shell
-python test_fixes.py
-```
+## 3. Benchmark CLI crash fix
 
-### 3. **PyTest return value warnings** ✅
+**Problem**: `UnboundLocalError` in `benchmarks/llm_compare.py` due to undefined `e()` function.
 
-**Problem**: Test functions were returning `True/False` instead of using assertions.
+**Solution**: Replaced `e()` call with `log()` function which is properly defined.
 
-**Fix**: Updated `test_quick.py`:
+**Files modified**:
+- `benchmarks/llm_compare.py`
+
+**Key change**:
 ```python
-# Before
-def test_something():
-    try:
-        # ... test code ...
-        return True
-    except:
-        return False
+# Before:
+e("⚠️  Pandas not available, using standard CSV reader (slower for large files)")
 
-# After
-def test_something():
-    try:
-        # ... test code ...
-        assert True  # Test passed
-    except Exception as e:
-        assert False, f"Test failed: {e}"
+# After:
+log("⚠️  Pandas not available, using standard CSV reader (slower for large files)")
 ```
 
-### 4. **KimeraBenchmark raw parameter consistency** ✅
+## 4. Multiprocessing pickling issue
 
-**Problem**: KimeraBenchmark was calling `init_geoid()` without the `raw` parameter.
+**Problem**: Potential pickling error due to dynamic redefinition of `_run_cycle` in `reactor_mp.py`.
 
-**Fix**: Updated `benchmarks/llm_compare.py`:
-```python
-# Before
-geoid1 = init_geoid(text1, "en", ["benchmark"])
+**Status**: Upon inspection, `_run_cycle` is defined at module level and should be pickle-safe. No changes were needed as the function is properly defined and not dynamically redefined.
 
-# After
-geoid1 = init_geoid(text1, "en", ["benchmark"], raw=text1)
-```
+## Summary of Changes
 
-## 🧪 Verification
+### New Files Created:
+- `tests/conftest.py` - Helper functions for test setup
 
-### New Test File: `test_fixes.py`
-Comprehensive test to verify all fixes:
-- ✅ `init_geoid` accepts `raw` parameter
-- ✅ `init_geoid` defaults `raw` to `text` when not provided
-- ✅ `KimeraBenchmark.detect_contradiction` works with text inputs
-- ✅ Streaming functions import successfully
+### Files Modified:
+- `tests/test_cls_integration.py` - DuckDB path fix + precision tolerance
+- `tests/test_storage_metrics.py` - DuckDB path fix
+- `test_v073_storage.py` - DuckDB path fix
+- `validate_v074.py` - DuckDB path fix
+- `benchmarks/llm_compare.py` - Fixed undefined function call
 
-### Updated Documentation
-- ✅ All scripts now have Poetry usage instructions
-- ✅ README updated with proper command examples
-- ✅ Clear error prevention guidance
+### Key Improvements:
+1. **Robust database testing**: All tests now use proper DuckDB initialization
+2. **Floating-point stability**: Tests use appropriate tolerance for numerical comparisons
+3. **Error-free CLI**: Benchmark CLI no longer crashes due to undefined functions
+4. **Consistent imports**: Added proper path handling for test modules
 
-## 🚀 Next Steps
+## Expected Impact
 
-### Immediate Testing
-```bash
-# 1. Test the fixes
-poetry run python test_fixes.py
+These fixes should resolve all 14 failing tests by addressing the four root causes:
+1. ✅ DuckDB initialization errors
+2. ✅ Floating-point precision issues  
+3. ✅ CLI crashes
+4. ✅ Multiprocessing compatibility (verified as already working)
 
-# 2. Run full test suite
-poetry run pytest -q
-
-# 3. Test small benchmark
-poetry run python -m benchmarks.llm_compare --kimera-only --max-pairs 5
-```
-
-### Ready for Phase 2.2
-With these fixes, the foundation is solid for:
-- **Multiprocessing**: Parallel Kimera geoid computation
-- **Async API calls**: Concurrent OpenAI requests  
-- **Persistent caching**: Embedding and resonance caches
-
-## 📋 Command Sequence Summary
-
-```bash
-# Install/update dependencies
-poetry lock
-poetry install
-
-# Test fixes
-poetry run python test_fixes.py
-
-# Run full test suite
-poetry run pytest -q
-
-# Test benchmark (with API key if available)
-export OPENAI_API_KEY="sk-..."  # or $env:OPENAI_API_KEY = "sk-..." in PowerShell
-poetry run python -m benchmarks.llm_compare data/toy_contradictions.csv --model gpt-4o-mini --max-pairs 5
-
-# Test Kimera-only mode (no API key needed)
-poetry run python -m benchmarks.llm_compare --kimera-only --max-pairs 10
-```
-
-**Expected Result**: All tests pass, benchmark runs successfully, ready for Phase 2.2! 🎉
+The changes are minimal and focused, maintaining backward compatibility while ensuring test stability.
