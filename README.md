@@ -1,11 +1,13 @@
 
-Kimera‑SWM Toy Prototype **v0.3.0**
+Kimera‑SWM Toy Prototype **v0.7.1**
 ===================================
 
 This repository holds a minimal, CPU‑only prototype implementing the
 core concepts defined in *Kimera‑SWM Micro‑Specification v0.1*.
 
 Features batch processing with latency and memory monitoring for large datasets.
+**New in v0.7.1**: Echo-form implementation with stable hashing and enhanced observability.
+**New in v0.7.0**: Negation fix with environment variable control and comprehensive benchmarking.
 **New in v0.3.0**: Memory-optimized streaming for handling 10k+ pairs efficiently.
 
 Quick‑start (Windows‑friendly)
@@ -107,6 +109,13 @@ poetry run python -m benchmarks.llm_compare --outfile my_results.csv --max-pairs
 - **Kimera-only mode**: Test without API key for development
 - **🚀 Async OpenAI calls**: 5-10× faster GPT-4o benchmarks with concurrent requests
 - **⚡ Smart parallelization**: Auto-detects optimal worker counts for Kimera
+
+**New in v0.7.1 - Echo-Form Implementation:**
+- **🔍 Enhanced Observability**: Every geoid now carries the exact trimmed text that was embedded
+- **🔗 Stable Hashing**: Deterministic geoid IDs based on `sha256(lang + echo)` instead of random UUIDs
+- **🧹 Whitespace Deduplication**: Leading/trailing spaces no longer create different embeddings
+- **📊 Explorer Enhancement**: Optional Echo columns in the web explorer for debugging
+- **⚡ Cache Efficiency**: Improved cache hit rates through consistent text normalization
 
 **Testing the Implementation:**
 ```bash

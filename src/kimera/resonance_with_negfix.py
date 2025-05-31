@@ -1,14 +1,10 @@
 import numpy as np
 import re
-import os
 from sklearn.metrics.pairwise import cosine_similarity
 from .rope import rope_buffer
 from .scar import fetch_scars  # <- only fetch_scars now
 
 THRESH = 0.3  # resonance threshold
-
-# Control negation fix via environment variable
-ENABLE_NEGATION_FIX = os.getenv("KIMERA_NEGATION_FIX", "1") == "1"
 
 # --- Negation-aware distance -------------------------------------------
 NEGATIONS = {"not", "no", "never", "cannot", "can't", "won't", "doesn't", "isn't", "aren't", "wasn't", "weren't", "don't", "didn't", "hasn't", "haven't", "hadn't"}
@@ -30,8 +26,8 @@ def resonance(a, b):
     penalty = (np.mean([s.weight for s in fetch_scars(a, b)]) if (a.scars or b.scars) else 0.0)
     score = sim * (1 - penalty)
     
-    # Apply negation mismatch penalty (if enabled)
-    if ENABLE_NEGATION_FIX and negation_mismatch(a.raw, b.raw):
+    # Apply negation mismatch penalty
+    if negation_mismatch(a.raw, b.raw):
         score -= 0.25          # push them further apart
         score = max(-1.0, score)
     

@@ -10,14 +10,22 @@ Usage:
     python -m benchmarks.llm_compare [dataset.csv] [--api-key KEY] [--output results.csv]
 """
 
+# ---- Begin emoji-safe logging -------------------------------------------
+import os, sys
+USE_EMOJI = "--no-emoji" not in sys.argv
+if not USE_EMOJI:               # strip the flag so argparse ignores it
+    sys.argv.remove("--no-emoji")
+
+def log(txt):                   # emoji-aware print helper
+    print(txt if USE_EMOJI else txt.encode('ascii', 'ignore').decode())
+# ---- End emoji-safe logging ---------------------------------------------
+
 import csv
 import json
-import os
 import time
 import asyncio
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional, Iterator
-import sys
 import gc
 
 # Add src to path for imports
@@ -85,7 +93,7 @@ def stream_dataset_pairs(dataset_path: Path, max_pairs: int, chunk_size: int = 1
             
     except ImportError:
         # Fallback to standard CSV reader
-        print("⚠️  Pandas not available, using standard CSV reader (slower for large files)")
+        e("⚠️  Pandas not available, using standard CSV reader (slower for large files)")
         
         with open(dataset_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
@@ -137,7 +145,7 @@ def load_dataset_efficiently(dataset_path: Path, max_pairs: int) -> List[Tuple[s
         return create_test_pairs(geoids, max_pairs)
     
     # For larger datasets, use streaming
-    print(f"📊 Using streaming loader for {max_pairs} pairs (memory efficient)")
+    log(f"📊 Using streaming loader for {max_pairs} pairs (memory efficient)")
     
     all_pairs = []
     chunk_size = min(1000, max_pairs * 4)  # Load 4x pairs worth of geoids per chunk
@@ -275,11 +283,11 @@ def run_benchmark(dataset_path: Path, api_key: Optional[str] = None, model: str 
                  async_concurrent: int = 0) -> Dict:
     """Run full benchmark comparison."""
     
-    print(f"📂 Loading dataset: {dataset_path}")
+    e(f"📂 Loading dataset: {dataset_path}")
     
     # Use efficient loading for large datasets
     test_pairs = load_dataset_efficiently(dataset_path, max_pairs)
-    print(f"✅ Testing {len(test_pairs)} pairs")
+    e(f"✅ Testing {len(test_pairs)} pairs")
     
     # Initialize benchmarks
     kimera = KimeraBenchmark()
@@ -287,17 +295,17 @@ def run_benchmark(dataset_path: Path, api_key: Optional[str] = None, model: str 
     
     if not kimera_only:
         if not OPENAI_AVAILABLE:
-            print("⚠️  OpenAI not available. Running Kimera-only mode.")
+            e("⚠️  OpenAI not available. Running Kimera-only mode.")
             kimera_only = True
         elif not api_key:
-            print("⚠️  No API key provided. Running Kimera-only mode.")
+            e("⚠️  No API key provided. Running Kimera-only mode.")
             kimera_only = True
         else:
             try:
                 gpt4o = GPT4oBenchmark(api_key, model)
                 print(f"✓ GPT-4o benchmark initialized (model: {model})")
             except Exception as e:
-                print(f"⚠️  GPT-4o initialization failed: {e}")
+                e(f"⚠️  GPT-4o initialization failed: {e}")
                 print("Running Kimera-only mode.")
                 kimera_only = True
     
@@ -357,7 +365,7 @@ def run_benchmark(dataset_path: Path, api_key: Optional[str] = None, model: str 
             
         else:
             if async_concurrent > 0 and not ASYNC_AVAILABLE:
-                print("⚠️  Async mode requested but httpx not available. Using sync mode.")
+                e("⚠️  Async mode requested but httpx not available. Using sync mode.")
             
             print(f"\n=== Running GPT-4o Benchmark ({model}) - Sync Mode ===")
             gpt4o_start = time.perf_counter()
@@ -493,11 +501,11 @@ def create_visualization(results: Dict, output_path: Path):
     """Create matplotlib bar chart comparing Kimera vs GPT-4o."""
     
     if not MATPLOTLIB_AVAILABLE:
-        print("⚠️  Matplotlib not available. Skipping visualization.")
+        log("⚠️  Matplotlib not available. Skipping visualization.")
         return
     
     if results["kimera_only"]:
-        print("⚠️  Kimera-only mode. Skipping comparison visualization.")
+        log("⚠️  Kimera-only mode. Skipping comparison visualization.")
         return
     
     # Prepare data
@@ -646,7 +654,7 @@ def main():
     # Validate dataset path
     dataset_path = Path(args.dataset)
     if not dataset_path.exists():
-        print(f"❌ Dataset not found: {dataset_path}")
+        e(f"❌ Dataset not found: {dataset_path}")
         print("Available datasets:")
         data_dir = Path("data")
         if data_dir.exists():
@@ -698,7 +706,7 @@ def main():
                 print("✓ Comprehensive metrics generated!")
                 
             except Exception as e:
-                print(f"⚠️  Failed to generate metrics: {e}")
+                e(f"⚠️  Failed to generate metrics: {e}")
         
         # Create visualization
         if not args.no_viz and not results["kimera_only"]:
@@ -708,10 +716,10 @@ def main():
         return 0
         
     except KeyboardInterrupt:
-        print("\n❌ Benchmark interrupted by user")
+        e("\n❌ Benchmark interrupted by user")
         return 1
     except Exception as e:
-        print(f"❌ Benchmark failed: {e}")
+        e(f"❌ Benchmark failed: {e}")
         return 1
 
 

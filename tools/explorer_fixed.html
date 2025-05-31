@@ -106,12 +106,6 @@
    font-size: 0.8em;
    margin-bottom: 1rem;
  }
- .echo-cell {
-   background: #f8f9fa;
-   font-style: italic;
-   color: #6c757d;
-   font-size: 0.9em;
- }
 </style>
 </head>
 <body>
@@ -201,10 +195,6 @@ function detectColumnMapping(headers) {
   // Text columns
   mapping.text1 = headers.find(h => h.toLowerCase().includes('text1')) || 'text1';
   mapping.text2 = headers.find(h => h.toLowerCase().includes('text2')) || 'text2';
-  
-  // Echo columns (for debugging/observability)
-  mapping.echo1 = headers.find(h => h.toLowerCase().includes('echo1'));
-  mapping.echo2 = headers.find(h => h.toLowerCase().includes('echo2'));
   
   // Kimera columns
   mapping.kimera_pred = headers.find(h => 
@@ -331,8 +321,6 @@ function renderTable() {
   let headerHTML = '<tr><th>#</th>';
   if (columnMapping.text1) headerHTML += '<th>Text 1</th>';
   if (columnMapping.text2) headerHTML += '<th>Text 2</th>';
-  if (columnMapping.echo1) headerHTML += '<th>Echo 1</th>';
-  if (columnMapping.echo2) headerHTML += '<th>Echo 2</th>';
   if (columnMapping.kimera_pred) headerHTML += '<th>Kimera</th>';
   if (columnMapping.kimera_conf) headerHTML += '<th>K-Conf</th>';
   if (columnMapping.gpt_pred) headerHTML += '<th>GPT</th>';
@@ -372,16 +360,6 @@ function renderTable() {
     if (columnMapping.text2) {
       const text2 = row[columnMapping.text2] || '';
       cellHTML += `<td class="text-cell">${text2}</td>`;
-    }
-    
-    if (columnMapping.echo1) {
-      const echo1 = row[columnMapping.echo1] || '';
-      cellHTML += `<td class="text-cell echo-cell">${echo1}</td>`;
-    }
-    
-    if (columnMapping.echo2) {
-      const echo2 = row[columnMapping.echo2] || '';
-      cellHTML += `<td class="text-cell echo-cell">${echo2}</td>`;
     }
     
     if (columnMapping.kimera_pred) {

@@ -1,13 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
-from uuid import uuid4
 from typing import List
 import numpy as np
 
 @dataclass
 class Geoid:
     raw: str                    # Original text content
+    echo: str                   # Trimmed text used for hashing and embedding
     gid: str
     lang_axis: str
     context_layers: List[str]
@@ -65,11 +65,22 @@ def init_geoid(text: str = None, lang: str = "en", layers: List[str] = None, *, 
     if layers is None:
         layers = tags if tags else ["default"]
     
-    sem_vec = sem_encoder(text, lang)
-    sym_vec = sym_encoder(text, lang)
+    # Create echo (trimmed text for hashing and embedding)
+    echo = raw.strip() if raw is not None else text.strip()
+    
+    # Generate stable hash from lang + echo
+    import hashlib
+    gid_input = f"{lang}:{echo}"
+    gid = hashlib.sha256(gid_input.encode()).hexdigest()[:16]  # 16-char hex
+    
+    # Use echo for encoding (consistent with cache key)
+    sem_vec = sem_encoder(echo, lang)
+    sym_vec = sym_encoder(echo, lang)
+    
     return Geoid(
         raw=raw,               # Store original text (or provided raw)
-        gid=str(uuid4()),
+        echo=echo,             # Trimmed text for hashing/embedding
+        gid=gid,               # Stable hash from lang + echo
         lang_axis=lang,
         context_layers=layers,
         sem_vec=sem_vec,
