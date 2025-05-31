@@ -105,16 +105,21 @@ class EchoForm:
         
         return total_intensity
 
-    def add_term(self, symbol: str, role: str, intensity: float = 1.0, **kwargs) -> None:
+    def add_term(self, symbol: str, role="generic", intensity: float = 1.0, **kwargs) -> None:
         """
         Add a new term to the form
         
         Args:
             symbol: Term symbol/identifier
-            role: Role classification for the term
+            role: Role classification for the term (default: "generic")
             intensity: Intensity value (default: 1.0)
             **kwargs: Additional term properties
         """
+        # Backward compatibility: handle legacy call patterns
+        if isinstance(role, (int, float)) and isinstance(intensity, dict):
+            # legacy order: (symbol, intensity, extras)
+            intensity, kwargs, role = role, intensity, "legacy_role"
+        
         term = {
             "symbol": symbol,
             "role": role,

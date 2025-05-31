@@ -13,10 +13,15 @@ import time
 import psutil
 import os
 import platform
+import multiprocessing
 from multiprocessing import Pool, cpu_count
 from typing import List, Optional, Dict
 from .reactor import reactor_cycle
 from .geoid import Geoid
+
+# Windows multiprocessing guard
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
 
 __all__ = ["reactor_cycle_parallel", "reactor_cycle_threaded"]
 
@@ -124,8 +129,14 @@ def reactor_cycle_parallel(geoids: List[Geoid], workers: Optional[int] = None, c
     batches = [geoids[i : i + chunk] for i in range(0, len(geoids), chunk)]
 
     # Process batches in parallel
-    with Pool(workers) as pool:
-        scar_counts = pool.starmap(_run_cycle, [(batch,) for batch in batches])
+    # Use spawn context on Windows for better compatibility
+    if platform.system() == "Windows":
+        ctx = multiprocessing.get_context('spawn')
+        with ctx.Pool(workers) as pool:
+            scar_counts = pool.starmap(_run_cycle, [(batch,) for batch in batches])
+    else:
+        with Pool(workers) as pool:
+            scar_counts = pool.starmap(_run_cycle, [(batch,) for batch in batches])
 
     # Calculate performance metrics
     delta_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2) - rss0

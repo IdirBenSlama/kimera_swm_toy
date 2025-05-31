@@ -365,7 +365,7 @@ def run_benchmark(dataset_path: Path, api_key: Optional[str] = None, model: str 
             
         else:
             if async_concurrent > 0 and not ASYNC_AVAILABLE:
-                e("⚠️  Async mode requested but httpx not available. Using sync mode.")
+                log("⚠️  Async mode requested but httpx not available. Using sync mode.")
             
             print(f"\n=== Running GPT-4o Benchmark ({model}) - Sync Mode ===")
             gpt4o_start = time.perf_counter()

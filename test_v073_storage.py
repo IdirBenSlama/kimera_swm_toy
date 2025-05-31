@@ -266,6 +266,7 @@ def test_migration_script():
     
     finally:
         # Clean up any created database
+        close_storage()
         if os.path.exists("kimera_lattice.db"):
             os.remove("kimera_lattice.db")
 

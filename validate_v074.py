@@ -11,7 +11,7 @@ import tempfile
 sys.path.insert(0, 'src')
 sys.path.insert(0, 'tests')
 
-from tests.conftest import fresh_duckdb_path
+from conftest import fresh_duckdb_path
 
 
 def test_imports():
@@ -178,6 +178,7 @@ def test_migration_script():
     
     finally:
         # Clean up
+        close_storage()
         if os.path.exists("kimera_lattice.db"):
             os.remove("kimera_lattice.db")
 

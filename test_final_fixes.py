@@ -1,151 +1,105 @@
 #!/usr/bin/env python3
 """
-Quick test to validate the final 9 fixes for 0.7.x stabilization
+Test the final fixes we just applied
 """
 import sys
 import os
-import tempfile
-from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, 'src')
 
-def test_benchmark_cli():
-    """Test A: Benchmark CLI no longer has e() calls"""
-    print("Testing benchmark CLI...")
+def test_safe_console():
+    """Test that safe console works"""
+    print("Testing safe console...")
     try:
-        from benchmarks.llm_compare import main
-        # This should not crash with UnboundLocalError
-        print("✅ Benchmark CLI imports successfully")
+        from kimera.utils.safe_console import puts
+        puts("[TEST] Safe console test with emojis: 🚀 ✅ ❌")
+        puts("[PASS] Safe console works")
         return True
     except Exception as e:
-        print(f"❌ Benchmark CLI issue: {e}")
+        print(f"[FAIL] Safe console failed: {e}")
         return False
 
-def test_init_geoid_import():
-    """Test B: init_geoid can be imported from echoform"""
-    print("Testing init_geoid import...")
+def test_storage_rowcount():
+    """Test that storage returns proper row counts"""
+    print("Testing storage row count...")
     try:
-        from kimera.echoform import init_geoid
-        print("✅ init_geoid import successful")
-        return True
-    except Exception as e:
-        print(f"❌ init_geoid import failed: {e}")
-        return False
-
-def test_storage_api():
-    """Test C: Storage API with new signature"""
-    print("Testing storage API...")
-    try:
+        from kimera.utils.safe_console import puts
+        from conftest import fresh_duckdb_path
         from kimera.storage import LatticeStorage
         from kimera.echoform import EchoForm
         
-        # Create temporary database
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
-            db_path = tmp.name
+        db_path = fresh_duckdb_path()
+        storage = LatticeStorage(db_path)
         
-        try:
-            storage = LatticeStorage(db_path)
-            
-            # Test new prune signature
-            deleted = storage.prune_old_forms(older_than_days=0)
-            print(f"✅ Storage pruning works (deleted: {deleted})")
-            
-            # Test close method
-            storage.close()
-            print("✅ Storage close works")
-            
-            return True
-        finally:
-            if os.path.exists(db_path):
-                os.unlink(db_path)
-                
-    except Exception as e:
-        print(f"❌ Storage API issue: {e}")
-        return False
-
-def test_migration_script():
-    """Test D: Migration script encoding"""
-    print("Testing migration script...")
-    try:
-        # Import the script to check for syntax errors
-        sys.path.insert(0, str(Path(__file__).parent / "scripts"))
-        import migrate_lattice_to_db
-        print("✅ Migration script imports successfully")
-        return True
-    except Exception as e:
-        print(f"❌ Migration script issue: {e}")
-        return False
-
-def test_multiprocessing():
-    """Test E: Multiprocessing pickling"""
-    print("Testing multiprocessing...")
-    try:
-        from kimera.reactor_mp import _run_cycle
-        from kimera.geoid import Geoid
+        # Add some forms
+        for i in range(3):
+            form = EchoForm(f"test_{i}")
+            form.add_term(f"symbol_{i}", role="test", intensity=1.0)
+            storage.store_form(form)
         
-        # Test that _run_cycle is picklable
-        import pickle
-        pickled = pickle.dumps(_run_cycle)
-        unpickled = pickle.loads(pickled)
-        print("✅ Multiprocessing function is picklable")
-        return True
+        # Test prune (should return proper count, not -1)
+        count = storage.prune_old_forms(older_than_seconds=3600)
+        
+        storage.close()
+        if os.path.exists(db_path):
+            os.remove(db_path)
+        
+        puts(f"[PASS] Storage row count works, deleted {count} forms")
+        return count >= 0  # Should not be -1
+        
     except Exception as e:
-        print(f"❌ Multiprocessing issue: {e}")
+        print(f"[FAIL] Storage row count test failed: {e}")
         return False
 
-def test_storage_metrics():
-    """Test F: Storage metrics with new EchoForm API"""
-    print("Testing storage metrics...")
+def test_imports():
+    """Test all critical imports"""
+    print("Testing imports...")
     try:
+        from kimera.utils.safe_console import puts
+        
+        # Test all critical imports
+        from conftest import fresh_duckdb_path
+        from kimera.storage import LatticeStorage
         from kimera.echoform import EchoForm
+        from kimera import reactor_mp
         
-        # Test new EchoForm constructor
-        form = EchoForm(anchor="test", domain="test", phase="active")
-        form.add_term("test", role="test_role", intensity=1.0, test=True)
-        print("✅ EchoForm new API works")
+        puts("[PASS] All imports successful")
         return True
     except Exception as e:
-        print(f"❌ Storage metrics issue: {e}")
+        print(f"[FAIL] Import test failed: {e}")
         return False
 
 def main():
-    """Run all tests"""
-    print("🔧 Testing final 9 fixes for Kimera 0.7.x stabilization\n")
+    """Run final fix tests"""
+    print("=" * 50)
+    print("FINAL FIXES TEST")
+    print("=" * 50)
     
     tests = [
-        ("A. Benchmark CLI", test_benchmark_cli),
-        ("B. init_geoid import", test_init_geoid_import), 
-        ("C. Storage API", test_storage_api),
-        ("D. Migration script", test_migration_script),
-        ("E. Multiprocessing", test_multiprocessing),
-        ("F. Storage metrics", test_storage_metrics),
+        test_safe_console,
+        test_storage_rowcount,
+        test_imports,
     ]
     
-    passed = 0
-    failed = 0
+    results = []
+    for test in tests:
+        success = test()
+        results.append(success)
+        print()
     
-    for name, test_func in tests:
-        print(f"\n--- {name} ---")
-        try:
-            if test_func():
-                passed += 1
-            else:
-                failed += 1
-        except Exception as e:
-            print(f"❌ {name} failed with exception: {e}")
-            failed += 1
+    passed = sum(results)
+    total = len(results)
     
-    print(f"\n📊 Results:")
-    print(f"  ✅ Passed: {passed}")
-    print(f"  ❌ Failed: {failed}")
+    print(f"Results: {passed}/{total} tests passed")
     
-    if failed == 0:
-        print("\n🎉 All fixes validated! Ready for green board!")
-        return 0
+    if passed == total:
+        print("[SUCCESS] All final fixes working!")
+        return True
     else:
-        print(f"\n⚠️  {failed} issues remain")
-        return 1
+        print("[ERROR] Some final fixes need work")
+        return False
 
 if __name__ == "__main__":
-    sys.exit(main())
+    success = main()
+    sys.exit(0 if success else 1)

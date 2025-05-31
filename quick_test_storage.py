@@ -64,6 +64,7 @@ def test_basic_storage():
     
     finally:
         # Clean up
+        close_storage()
         if os.path.exists("test_storage.db"):
             os.remove("test_storage.db")
 
@@ -110,6 +111,7 @@ def test_cls_integration():
     
     finally:
         # Clean up
+        close_storage()
         if os.path.exists("test_cls.db"):
             os.remove("test_cls.db")
 

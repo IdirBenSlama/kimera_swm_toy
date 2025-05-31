@@ -176,7 +176,9 @@ class LatticeStorage:
                 cursor = self._conn.execute(
                     "DELETE FROM echoforms WHERE created_at < ?", (cutoff,)
                 )
-                return cursor.rowcount
+                deleted = cursor.rowcount  # Grab before commit
+                self._conn.commit()
+                return deleted
     
     def apply_time_decay(self, tau_days: float = 14.0):
         """Apply exponential time decay to all forms"""
@@ -207,8 +209,10 @@ class LatticeStorage:
     
     def close(self):
         """Close the database connection"""
-        if hasattr(self, '_conn'):
-            self._conn.close()
+        with self._lock:
+            if hasattr(self, '_conn') and self._conn:
+                self._conn.close()
+                self._conn = None
 
 
 def get_storage(db_path: str = "kimera_lattice.db") -> LatticeStorage:
