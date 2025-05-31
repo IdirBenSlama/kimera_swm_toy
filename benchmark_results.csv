@@ -1,6 +1,12 @@
 pair_id,text1,text2,kimera_contradiction,kimera_confidence,kimera_reasoning,gpt4o_contradiction,gpt4o_confidence,gpt4o_reasoning,agreement
-0,The cat sat on the mat.,Mount Everest is the tallest mountain.,True,0.9076826050877571,"Resonance: 0.092, Threshold: 0.3",N/A,N/A,N/A,N/A
-1,The sky is blue.,The sky is green.,False,0.6730669140815735,"Resonance: 0.673, Threshold: 0.3",N/A,N/A,N/A,N/A
-2,Le chat est assis sur le tapis.,A canine pursued the sphere.,True,0.969485204666853,"Resonance: 0.031, Threshold: 0.3",N/A,N/A,N/A,N/A
-3,K2 is the tallest mountain.,Water is dry.,True,0.9565625190734863,"Resonance: 0.043, Threshold: 0.3",N/A,N/A,N/A,N/A
-4,Fire is cold.,Spiders have six legs.,True,0.8528294861316681,"Resonance: 0.147, Threshold: 0.3",N/A,N/A,N/A,N/A
+0,The sun rises in the east.,Spiders have eight legs.,True,0.9373769089579582,"Resonance: 0.063, Threshold: 0.3",N/A,N/A,N/A,N/A
+1,Berlin is the capital of France.,Spiders have six legs.,True,1.0801383554935455,"Resonance: -0.080, Threshold: 0.3",N/A,N/A,N/A,N/A
+2,Penguins cannot fly.,The feline was resting upon the rug.,True,0.8874513432383537,"Resonance: 0.113, Threshold: 0.3",N/A,N/A,N/A,N/A
+3,Water is wet.,The sky is green.,False,0.3157868981361389,"Resonance: 0.316, Threshold: 0.3",N/A,N/A,N/A,N/A
+4,Paris is the capital of France.,An apple is a fruit.,True,1.1151413172483444,"Resonance: -0.115, Threshold: 0.3",N/A,N/A,N/A,N/A
+5,Fire is hot.,The sun rises in the west.,True,0.7350890636444092,"Resonance: 0.265, Threshold: 0.3",N/A,N/A,N/A,N/A
+6,A canine pursued the sphere.,Water is dry.,True,0.9556947834789753,"Resonance: 0.044, Threshold: 0.3",N/A,N/A,N/A,N/A
+7,K2 is the tallest mountain.,The dog chased the ball.,True,1.1047586873173714,"Resonance: -0.105, Threshold: 0.3",N/A,N/A,N/A,N/A
+8,Le chat est assis sur le tapis.,Birds can fly.,True,0.9317165464162827,"Resonance: 0.068, Threshold: 0.3",N/A,N/A,N/A,N/A
+9,Mount Everest is the tallest mountain.,The cat sat on the mat.,True,0.9076826050877571,"Resonance: 0.092, Threshold: 0.3",N/A,N/A,N/A,N/A
+10,A carrot is a fruit.,The sky is blue.,True,0.9350554943084717,"Resonance: 0.065, Threshold: 0.3",N/A,N/A,N/A,N/A

@@ -1,0 +1,12 @@
+pair_id,text1,text2,label,kimera_conf
+0,The sun rises in the east.,Spiders have eight legs.,1,0.9373769089579582
+1,Berlin is the capital of France.,Spiders have six legs.,1,1.0801383554935455
+2,Penguins cannot fly.,The feline was resting upon the rug.,1,0.8874513432383537
+3,Water is wet.,The sky is green.,0,0.6842131018638611
+4,Paris is the capital of France.,An apple is a fruit.,1,1.1151413172483444
+5,Fire is hot.,The sun rises in the west.,0,0.7350890636444092
+6,A canine pursued the sphere.,Water is dry.,1,0.9556947834789753
+7,K2 is the tallest mountain.,The dog chased the ball.,1,1.1047586873173714
+8,Le chat est assis sur le tapis.,Birds can fly.,1,0.9317165464162827
+9,Mount Everest is the tallest mountain.,The cat sat on the mat.,1,0.9076826050877571
+10,A carrot is a fruit.,The sky is blue.,1,0.9350554943084717
