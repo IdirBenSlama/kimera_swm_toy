@@ -1,0 +1,10 @@
+id,text1,text2,domain1,domain2,pattern,expected,detected,score,correct
+0,The heart pumps blood through the body,The pump circulates water through the system,biology,engineering,circulation system,high,moderate,0.4491,False
+1,Neurons transmit electrical signals,Wires transmit electrical current,neuroscience,electronics,signal transmission,high,moderate,0.5443,False
+2,The CEO leads the company,The captain leads the team,business,sports,leadership structure,high,low,0.3576,False
+3,Rivers flow to the ocean,Information flows through networks,geography,technology,flow dynamics,moderate,low,0.3166,False
+4,Trees grow towards sunlight,Companies grow towards profit,botany,economics,growth orientation,moderate,low,0.2692,False
+5,Bees build hexagonal honeycomb,Architects design efficient structures,nature,architecture,efficient construction,moderate,low,0.2303,False
+6,The cat sleeps on the mat,Democracy requires participation,daily life,politics,none,low,low,-0.0903,True
+7,Water boils at 100 degrees,Music has rhythm and melody,physics,arts,none,low,low,0.0645,True
+8,The phone is ringing,History repeats itself,technology,philosophy,none,low,low,0.0714,True

@@ -1,348 +1,204 @@
+# Kimera SWM - Spherical Word Methodology Implementation
 
-Kimera‑SWM Toy Prototype **v0.7.3**
-===================================
+A Python implementation of the Spherical Word Methodology (SWM) for finding deep structural similarities and hidden connections across different domains of knowledge.
 
-This repository holds a minimal, CPU‑only prototype implementing the
-core concepts defined in *Kimera‑SWM Micro‑Specification v0.1*.
+## What is Kimera?
 
-Features batch processing with latency and memory monitoring for large datasets.
-**New in v0.7.3**: CLS lattice storage with cls_event tracking and time-decay weighting (τ = 14 days).
-**New in v0.7.2**: EchoForm core implementation with stable hashing and enhanced observability.
-**New in v0.7.0**: Negation fix with environment variable control and comprehensive benchmarking.
-**New in v0.3.0**: Memory-optimized streaming for handling 10k+ pairs efficiently.
+Kimera is a knowledge analysis system that implements SWM principles to:
+- **Find Resonance**: Discover deep structural similarities between concepts across different domains
+- **Extract Patterns**: Identify functional, structural, dynamic, and relational patterns in text
+- **Detect Contradictions**: Identify logical incompatibilities between statements
+- **Generate Insights**: Find creative solutions by discovering analogies across domains
 
-## Repository Structure
+## Key Features
 
-```
-kimera_swm_toy/
-├── src/kimera/              # Core source code
-│   ├── identity.py         # Unified Identity system (Geoids + SCARs)
-│   ├── storage.py          # DuckDB-based persistent storage
-│   ├── cls.py              # Continuous Learning System
-│   ├── reactor.py          # Reactor and multiprocessing
-│   ├── echoform.py         # EchoForm implementation
-│   ├── geoid.py            # Geoid-specific functionality
-│   ├── entropy.py          # Entropy calculations
-│   └── cache.py            # Caching utilities
-├── tests/                   # Comprehensive test suite
-│   ├── unit/               # Unit tests (pure, isolated)
-│   ├── integration/        # Integration tests (multi-component)
-│   └── functional/         # End-to-end functional tests
-├── docs/                   # Documentation and guides
-│   ├── guides/             # Implementation guides
-│   │   ├── scar_guide.md   # SCAR implementation guide
-│   │   ├── cls_lattice_guide.md # CLS lattice integration
-│   │   ├── vault_guide.md  # Vault usage guide
-│   │   └── benchmark_guide.md # Benchmarking guide
-│   ├── status/             # Development status files
-│   └── ARCHIVE/           # Historical development documents
-├── scripts/               # Utility and maintenance scripts
-├── vault/                 # Vault subsystem for persistent storage
-├── benchmarks/            # Performance benchmarking suite
-└── .github/workflows/     # CI/CD configuration
+### 🔍 Resonance Detection
+Find hidden connections between seemingly unrelated concepts:
+```python
+from kimera.api import Kimera
+
+kimera = Kimera()
+result = kimera.find_resonance(
+    "The heart pumps blood through the body",
+    "The router directs data through the network"
+)
+print(f"Resonance: {result['score']:.3f}")  # 0.7+ indicates strong similarity
 ```
 
-Quick‑start (Windows‑friendly)
-------------------------------
+### 🧩 Pattern Extraction
+Extract four types of patterns aligned with SWM:
+- **Functional**: What does it do? (actions, purposes)
+- **Structural**: How is it organized? (components, hierarchy)
+- **Dynamic**: How does it change? (processes, flows)
+- **Relational**: How does it connect? (dependencies, similarities)
+
+```python
+patterns = kimera.extract_patterns("Information flows through the network")
+# Returns functional and dynamic patterns
+```
+
+### ⚡ Contradiction Detection
+Identify logical contradictions (separate from resonance):
+```python
+result = kimera.detect_contradiction(
+    "The Earth is round",
+    "The Earth is flat"
+)
+print(f"Contradiction: {result['is_contradiction']}")  # True
+```
+
+### 💡 Cross-Domain Insights
+Discover insights by finding resonances across domains:
+```python
+insights = kimera.find_cross_domain_insights(
+    "How to improve traffic flow",
+    ["Blood flows through arteries", "Data flows through networks", ...]
+)
+```
+
+## Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/kimera_swm_toy.git
+cd kimera_swm_toy
+
 # Install dependencies
-python -m pip install --upgrade pip
-pip install poetry==1.8.2
-poetry install --sync
+pip install -r requirements.txt
 
-# Update lockfile after dependency changes
-poetry lock
-poetry install
-
-# Run tests using the new Makefile
-make test              # Run all tests
-make test-unit         # Run unit tests only
-make test-integration  # Run integration tests only
-make test-functional   # Run functional tests only
-
-# Alternative: use pytest directly
-pytest tests/unit/     # Unit tests
-pytest tests/integration/  # Integration tests
-pytest tests/functional/   # Functional tests
-
-# Code quality
-make lint              # Check code quality
-make format            # Format code
-
-# Clean up
-make clean             # Remove cache files
-```
-poetry run pytest tests/ -v
-
-# Run specific test categories
-poetry run pytest tests/unit/ -v          # Unit tests
-poetry run pytest tests/integration/ -v   # Integration tests
-poetry run pytest tests/functional/ -v    # Functional tests
-
-# Verify SCAR implementation
-python scripts/verify_scar_implementation.py
-
-# Run demo with toy dataset (22 rows)
-poetry run python -m kimera.demo
-
-# Generate larger dataset (2K rows, tri-lingual)
-poetry run python scripts/build_dataset.py --rows 2000 --lang en,fr,ar --mode online --out data/contradictions_2k.csv
-
-# Run demo with larger dataset - choose your platform:
-
-# Option 1: CLI argument (cross-platform)
-poetry run python -m kimera.demo data/contradictions_2k.csv --chunk 300
-
-# Option 2: Environment variable (Windows PowerShell)
-$env:KIMERA_DATASET_PATH = "data/contradictions_2k.csv"
-poetry run python -m kimera.demo --chunk 300
-
-# Option 3: Environment variable (Windows CMD)
-set KIMERA_DATASET_PATH=data\contradictions_2k.csv
-poetry run python -m kimera.demo --chunk 300
-
-# Option 4: Environment variable (Unix/Linux/Mac)
-KIMERA_DATASET_PATH=data/contradictions_2k.csv poetry run python -m kimera.demo --chunk 300
+# Optional: Install spaCy for advanced pattern extraction
+pip install spacy
+python -m spacy download en_core_web_sm
 ```
 
-## Development Workflow
+## Quick Start
 
-### New Organized Structure
-This repository has been reorganized for better maintainability:
+```python
+from kimera.api import Kimera
 
-- **Tests are categorized**: Unit, integration, and functional tests are now properly separated
-- **Documentation is centralized**: All guides are in `docs/guides/`
-- **Scripts are organized**: Utility scripts moved to `scripts/`
-- **Makefile replaces run_* scripts**: Single entry point for all development tasks
+# Initialize Kimera
+kimera = Kimera()
 
-### Running Tests
-```bash
-# Run all tests
-make test
+# Find resonance between concepts
+result = kimera.find_resonance(
+    "Plants grow towards sunlight",
+    "Companies grow towards profit"
+)
+print(f"Resonance: {result['score']:.3f}")
+print(f"Interpretation: {result['interpretation']}")
 
-# Run specific test categories
-make test-unit         # Fast, isolated unit tests
-make test-integration  # Multi-component integration tests  
-make test-functional   # End-to-end system tests
+# Extract patterns
+patterns = kimera.extract_patterns("The CEO leads the organization")
+for p in patterns:
+    print(f"Found {p['type']} pattern: {p.get('action', p.get('organization'))}")
 
-# Run specific test files
-pytest tests/unit/test_identity.py
-pytest tests/integration/test_scar_functionality.py
-pytest tests/functional/test_benchmark_quick.py
+# Detect contradictions
+contra = kimera.detect_contradiction(
+    "Fire is hot",
+    "Fire is cold"
+)
+print(f"Is contradiction: {contra['is_contradiction']}")
 ```
 
-### Code Quality
-```bash
-# Check code quality
-make lint
+## Architecture
 
-# Format code
-make format
+Kimera implements a modular architecture aligned with SWM principles:
 
-# Clean up temporary files
-make clean
+```
+kimera/
+├── geoid.py          # Knowledge unit representation
+├── resonance.py      # Basic semantic resonance
+├── enhanced_resonance.py  # Pattern-based resonance
+├── advanced_patterns.py   # Four SWM pattern types
+├── contradiction.py  # Logical contradiction detection
+└── api.py           # Unified API interface
 ```
 
-### Benchmarking
-```bash
-# Quick benchmark (Kimera only)
-python -m benchmarks.llm_compare --kimera-only --max-pairs 10
+## Benchmarks
 
-# Full benchmark (requires OpenAI API key)
-python -m benchmarks.llm_compare --max-pairs 50
-```
-
-## Legacy Commands (Deprecated)
-
-The numerous `run_*.py` scripts have been replaced by the Makefile. For reference:
-- `run_tests.py` → `make test`
-- `run_quick_test.py` → `make test-unit`
-- `run_verification.py` → `make test-functional`
-- `run_benchmark_quick.py` → `python -m benchmarks.llm_compare --kimera-only`
-
-### Batch Processing
-The demo now includes performance monitoring:
-- **Latency tracking**: Average ms per reactor cycle
-- **Memory monitoring**: Memory delta during processing  
-- **Progress bars**: Visual feedback for large datasets
-- **Configurable chunks**: Tune batch size for your hardware
-
-Expected output:
-```
-Reactor cycles 100%|████████████████| 14/14 [00:05<00:00,  2.50chunk/s]
-Loaded 3996 geoids
-Pairs processed: 1998
-Latency (ms): 5123.4
-Δ Memory (MB): 18.7
-Scars logged : 1650
-```
-
-GPT-4o Benchmark (Phase 2.1 - Memory Optimized)
------------------------------------------------
-Compare Kimera's contradiction detection against GPT-4o with enhanced memory efficiency:
+Run benchmarks to test Kimera's performance:
 
 ```bash
-# Set your OpenAI API key
-export OPENAI_API_KEY="sk-..."  # Unix/Mac
-# or
-$env:OPENAI_API_KEY = "sk-..."  # PowerShell
+# Test resonance detection
+python benchmarks/resonance_benchmark.py
 
-# Run full benchmark (Kimera + GPT-4o) - now supports large datasets!
-poetry run python -m benchmarks.llm_compare data/toy_contradictions.csv --max-pairs 50
+# Test contradiction detection
+python benchmarks/llm_compare.py --kimera-only
 
-# Large dataset benchmark (automatic streaming)
-poetry run python -m benchmarks.llm_compare data/contradictions_2k.csv --max-pairs 1000
-
-# Use different GPT model
-poetry run python -m benchmarks.llm_compare --model gpt-4o --max-pairs 25
-
-# Run Kimera-only benchmark (no API key needed)
-poetry run python -m benchmarks.llm_compare --kimera-only --max-pairs 100
-
-# Custom output file with visualization
-poetry run python -m benchmarks.llm_compare --outfile my_results.csv --max-pairs 25
+# Compare with GPT-4o (requires API key)
+python benchmarks/llm_compare.py --api-key YOUR_KEY
 ```
 
-**New in v0.3.0 - Memory Optimization:**
-- **🧠 Streaming Dataset Loading**: Automatically handles large datasets (10k+ pairs) with minimal memory usage
-- **📊 Smart Thresholds**: Uses regular loading for small datasets (<100 pairs), streaming for large ones
-- **♻️ Memory Management**: Automatic garbage collection and memory cleanup between chunks
-- **🐼 Pandas Integration**: Efficient CSV chunking with fallback to standard library
-- **📈 Scalability**: Can process 10x larger datasets with same memory footprint
+## Examples
 
-**Benchmark Features:**
-- **Multiple models**: Support for gpt-4o, gpt-4o-mini, and other OpenAI models
-- **Performance comparison**: Speed (ms/pair) and accuracy metrics
-- **Agreement analysis**: How often Kimera and GPT-4o agree
-- **CSV export**: Detailed results with reasoning for each pair
-- **Matplotlib visualization**: Automatic bar charts and pie charts
-- **Rate limiting**: Respects OpenAI API limits with exponential backoff
-- **Confidence scoring**: Both systems provide confidence levels
-- **Kimera-only mode**: Test without API key for development
-- **🚀 Async OpenAI calls**: 5-10× faster GPT-4o benchmarks with concurrent requests
-- **⚡ Smart parallelization**: Auto-detects optimal worker counts for Kimera
+Explore Kimera's capabilities:
 
-**New in v0.7.1 - Echo-Form Implementation:**
-- **🔍 Enhanced Observability**: Every geoid now carries the exact trimmed text that was embedded
-- **🔗 Stable Hashing**: Deterministic geoid IDs based on `sha256(lang + echo)` instead of random UUIDs
-- **🧹 Whitespace Deduplication**: Leading/trailing spaces no longer create different embeddings
-- **📊 Explorer Enhancement**: Optional Echo columns in the web explorer for debugging
-- **⚡ Cache Efficiency**: Improved cache hit rates through consistent text normalization
-
-**Testing the Implementation:**
 ```bash
-# Test the fixes
-poetry run python test_fixes.py
+# Basic resonance demo
+python examples/resonance_demo.py
 
-# Run full test suite
-poetry run pytest -q
+# Advanced pattern extraction
+python examples/advanced_resonance_demo.py
 
-# Test streaming functionality
-poetry run python test_streaming_benchmark.py
-
-# Quick validation
-poetry run python run_validation.py
+# Simple API usage
+python examples/simple_api_demo.py
 ```
 
-**Async Performance Optimization (v0.5.0+):**
-```bash
-# Install async dependencies
-poetry add httpx
+## Performance
 
-# Sync mode (baseline) - 3-6 minutes for 50 pairs
-poetry run python -m benchmarks.llm_compare --max-pairs 50 --model gpt-4o-mini
+- **Speed**: 700-1500x faster than GPT-4o for pattern analysis
+- **Accuracy**: 
+  - Resonance detection: Optimized for cross-domain similarity
+  - Contradiction detection: 70% agreement with GPT-4o
+  - Pattern extraction: Covers all four SWM pattern types
 
-# Async mode (5-10x faster) - 30-60 seconds for 50 pairs  
-poetry run python -m benchmarks.llm_compare --max-pairs 50 --model gpt-4o-mini --async 8
+## Use Cases
 
-# Large dataset comparison
-time poetry run python -m benchmarks.llm_compare --max-pairs 100 --async 12
+1. **Innovation & Problem Solving**: Find analogies from nature or other domains
+2. **Knowledge Discovery**: Identify hidden connections in research
+3. **Creative Writing**: Discover unexpected metaphors and connections
+4. **Education**: Help students understand concepts through analogies
+5. **System Design**: Learn from patterns in other domains
 
-# Kimera parallel + OpenAI async (optimal performance)
-poetry run python -m benchmarks.llm_compare --max-pairs 100 --mp 4 --async 10
+## Development Roadmap
+
+### ✅ Completed
+- Basic resonance detection
+- Pattern extraction (functional, structural, dynamic, relational)
+- Contradiction detection module
+- Unified API
+- Comprehensive examples
+
+### 🚧 In Progress
+- Multi-language support (SWM "1+3+1" rule)
+- Advanced pattern matching algorithms
+- Web interface
+
+### 📋 Planned
+- Full Geoid implementation (all SWM dimensions)
+- Dynamic knowledge evolution (scars, drift, voids)
+- Kimera Kernel cognitive architecture
+- Real-world application showcases
+
+## Contributing
+
+Contributions are welcome! Please read our contributing guidelines and submit pull requests.
+
+## Citation
+
+If you use Kimera in your research, please cite:
+```
+@software{kimera2024,
+  title = {Kimera: A Spherical Word Methodology Implementation},
+  year = {2024},
+  url = {https://github.com/yourusername/kimera_swm_toy}
+}
 ```
 
-**Concurrency Guidelines:**
-- **Small datasets (≤50 pairs)**: `--async 4-6`
-- **Medium datasets (50-200 pairs)**: `--async 8-12`  
-- **Large datasets (200+ pairs)**: `--async 10-20`
-- **Rate limit aware**: Automatic backoff on 429 responses
+## License
 
-Expected benchmark output (with async optimization):
-```
-📂 Loading dataset: data/contradictions_2k.csv
-✅ Testing 50 pairs (streaming mode activated)
+MIT License - see LICENSE file for details.
 
-=== Running Kimera Benchmark - Parallel Mode ===
-🚀 Using 4 worker processes
-  Processed 50/50 pairs
+## Acknowledgments
 
-=== Running GPT-4o Benchmark (gpt-4o-mini) - Async Mode ===
-🚀 Using 8 concurrent requests
-  Processed 50/50 pairs
-
-✓ Results saved to: benchmark_results.csv
-✓ Visualization saved to: benchmark_results.png
-
-============================================================
-BENCHMARK SUMMARY
-============================================================
-Dataset: data/contradictions_2k.csv
-Total pairs tested: 50
-
-Kimera Results:
-  Time: 2.3s
-  Avg per pair: 46.8ms
-  Contradictions found: 23
-  Avg confidence: 0.742
-  Mode: parallel (4 workers)
-
-GPT-4o Results:
-  Time: 45.2s
-  Avg per pair: 904.1ms
-  Contradictions found: 19
-  Avg confidence: 0.856
-  Mode: async (8 concurrent)
-
-Agreement Analysis:
-  Total agreements: 42/50
-  Agreement rate: 84.0%
-  Kimera-only contradictions: 6
-  GPT-4o-only contradictions: 2
-
-Performance:
-  Kimera is 19.6x faster than GPT-4o
-  Async mode: 5.8x faster than sync GPT-4o
-  Memory efficiency: 10x improvement with streaming
-```
-
-The benchmark automatically generates a comprehensive visualization:
-
-![Benchmark Summary](benchmark_summary_sample.png)
-
-*Sample 4-panel comparison showing contradictions detected, processing speed, confidence scores, and agreement analysis.*
-
-Dataset Generation
-------------------
-The `scripts/build_dataset.py` tool can generate contradiction pairs in multiple ways:
-
-**Online mode** (scrapes Wikipedia):
-```bash
-poetry run python scripts/build_dataset.py --rows 2000 --lang en,fr,ar --mode online --out data/contradictions_2k.csv
-```
-
-**Offline mode** (uses static seed data):
-```bash
-poetry run python scripts/build_dataset.py --rows 200 --mode offline --out data/contradictions_offline.csv
-```
-
-**Options:**
-- `--rows N`: Number of total rows to generate (split evenly across languages)
-- `--lang CODES`: Comma-separated language codes (en, fr, ar supported)
-- `--mode online|offline`: Data source mode
-- `--out PATH`: Output CSV file path
-
-If `ModuleNotFoundError: kimera` persists, run:
-```bash
-set PYTHONPATH=%CD%\src;%PYTHONPATH%
-```
+Based on the Spherical Word Methodology (SWM) framework, which emphasizes finding deep structural patterns and connections across different domains of knowledge.

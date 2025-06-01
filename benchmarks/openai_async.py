@@ -27,22 +27,31 @@ class AsyncOpenAIClient:
     """Async OpenAI client with concurrent request handling."""
     
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini", 
-                 max_concurrent: int = 8, base_url: str = "https://api.openai.com/v1"):
+                 max_concurrent: int = 8, base_url: str = None):
         if not HTTPX_AVAILABLE:
             raise ImportError("Install httpx for async support: pip install httpx")
             
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.api_key = (api_key or 
+                       os.getenv("OPENAI_API_KEY") or 
+                       "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")
         if not self.api_key:
             raise ValueError("OpenAI API key required. Set OPENAI_API_KEY env var or pass api_key")
         
-        self.model = model
-        self.base_url = base_url
+        # Auto-detect OpenRouter API
+        if self.api_key.startswith("sk-or-"):
+            self.base_url = base_url or "https://openrouter.ai/api/v1"
+            # OpenRouter requires model prefix
+            self.model = f"openai/{model}" if not model.startswith("openai/") else model
+        else:
+            self.base_url = base_url or "https://api.openai.com/v1"
+            self.model = model
+            
         self.max_concurrent = max_concurrent
         self.semaphore = asyncio.Semaphore(max_concurrent)
         
         # HTTP client configuration
         self.client = httpx.AsyncClient(
-            base_url=base_url,
+            base_url=self.base_url,
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json"

@@ -139,7 +139,23 @@ def load_dataset_efficiently(dataset_path: Path, max_pairs: int) -> List[Tuple[s
     Returns:
         List of (text1, text2) pairs
     """
-    # For small datasets, use the original method
+    # Check if the CSV has text1/text2 columns (paired format)
+    with open(dataset_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        first_row = next(reader, None)
+        if first_row and 'text1' in first_row and 'text2' in first_row:
+            # This is a paired dataset, load pairs directly
+            f.seek(0)
+            reader = csv.DictReader(f)
+            pairs = []
+            for row in reader:
+                if len(pairs) >= max_pairs:
+                    break
+                if row['text1'].strip() and row['text2'].strip():
+                    pairs.append((row['text1'], row['text2']))
+            return pairs
+    
+    # Otherwise, use the original method
     if max_pairs <= 100:
         geoids = load_toy_dataset(dataset_path)
         return create_test_pairs(geoids, max_pairs)
@@ -181,12 +197,27 @@ class GPT4oBenchmark:
         if not OPENAI_AVAILABLE:
             raise ImportError("Install openai: pip install openai")
             
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.api_key = (api_key or 
+                       os.getenv("OPENAI_API_KEY") or 
+                       "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")
         if not self.api_key:
             raise ValueError("OpenAI API key required. Set OPENAI_API_KEY env var or pass --api-key")
         
         self.model = model
-        self.client = openai.OpenAI(api_key=self.api_key)
+        
+        # Check if this is an OpenRouter API key
+        if self.api_key.startswith("sk-or-"):
+            # Use OpenRouter base URL
+            self.client = openai.OpenAI(
+                api_key=self.api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            # OpenRouter requires model prefix
+            if not model.startswith("openai/"):
+                self.model = f"openai/{model}"
+        else:
+            # Standard OpenAI API
+            self.client = openai.OpenAI(api_key=self.api_key)
     
     def detect_contradiction(self, text1: str, text2: str, max_retries: int = 3) -> Tuple[bool, float, str]:
         """
@@ -252,16 +283,25 @@ class KimeraBenchmark:
         """
         Returns (is_contradiction, confidence, reasoning)
         """
-        # Create geoids for the texts
-        geoid1 = init_geoid(text1, "en", ["benchmark"], raw=text1)
-        geoid2 = init_geoid(text2, "en", ["benchmark"], raw=text2)
-        
-        resonance_score = resonance(geoid1, geoid2)
-        is_contradiction = bool(resonance_score < THRESH)  # Cast numpy.bool_ to bool
-        confidence = 1.0 - resonance_score if is_contradiction else resonance_score
-        reasoning = f"Resonance: {resonance_score:.3f}, Threshold: {THRESH}"
-        
-        return is_contradiction, confidence, reasoning
+        # Import the new contradiction detection module
+        try:
+            from kimera.contradiction import is_contradiction
+            # Use the dedicated contradiction detection
+            return is_contradiction(text1, text2, "en")
+        except ImportError:
+            # Fallback to resonance-based detection if module not available
+            from kimera.geoid import init_geoid
+            from kimera.resonance import resonance, THRESH
+            
+            geoid1 = init_geoid(text1, "en", ["benchmark"], raw=text1)
+            geoid2 = init_geoid(text2, "en", ["benchmark"], raw=text2)
+            
+            resonance_score = resonance(geoid1, geoid2)
+            is_contradiction = bool(resonance_score < THRESH)
+            confidence = 1.0 - resonance_score if is_contradiction else resonance_score
+            reasoning = f"Resonance: {resonance_score:.3f}, Threshold: {THRESH}"
+            
+            return is_contradiction, confidence, reasoning
 
 
 def create_test_pairs(geoids: List[Geoid], max_pairs: int = 50) -> List[Tuple[str, str]]:
@@ -625,7 +665,9 @@ def main():
     parser.add_argument("dataset", nargs="?", 
                        default="data/toy_contradictions.csv",
                        help="Path to CSV dataset")
-    parser.add_argument("--api-key", help="OpenAI API key (or set OPENAI_API_KEY env var)")
+    parser.add_argument("--api-key", 
+                       default="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",
+                       help="OpenAI API key (default: integrated key)")
     parser.add_argument("--model", default="gpt-4o-mini",
                        help="OpenAI model to use (default: gpt-4o-mini)")
     parser.add_argument("--outfile", default="benchmark_results.csv", 

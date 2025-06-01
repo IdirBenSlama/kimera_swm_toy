@@ -30,3 +30,19 @@ try:
 except ImportError:
     # Storage requires DuckDB which might not be installed
     pass
+
+# Thermodynamics module
+try:
+    from .thermodynamics import (  # noqa: F401
+        ThermodynamicSystem,
+        SemanticPressure,
+        ConceptualVoid,
+        create_thermodynamic_system
+    )
+    from .thermodynamic_echoform import (  # noqa: F401
+        ThermodynamicEchoForm,
+        create_thermodynamic_echoform
+    )
+except ImportError:
+    # Thermodynamics might have dependencies
+    pass
