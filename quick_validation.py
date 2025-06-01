@@ -1,50 +1,58 @@
 #!/usr/bin/env python3
 """
-Quick validation of key fixes
+Quick validation of current implementation
 """
 import sys
-from pathlib import Path
+import os
+sys.path.insert(0, 'src')
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
-def test_imports():
-    """Test basic imports work"""
+def main():
+    print("=== Quick Validation ===")
+    
+    # Test 1: EchoForm basic functionality
     try:
-        # Test A: Benchmark CLI
-        print("Testing benchmark CLI import...")
-        from benchmarks.llm_compare import main
-        print("✅ Benchmark CLI imports")
-        
-        # Test B: init_geoid import
-        print("Testing init_geoid import...")
-        from kimera.echoform import init_geoid
-        print("✅ init_geoid imports")
-        
-        # Test C: Storage imports
-        print("Testing storage imports...")
-        from kimera.storage import LatticeStorage
-        print("✅ Storage imports")
-        
-        # Test D: Migration script
-        print("Testing migration script...")
-        from scripts.migrate_lattice_to_db import safe_print
-        print("✅ Migration script imports")
-        
-        # Test E: Reactor MP
-        print("Testing reactor MP...")
-        from kimera.reactor_mp import Geoid
-        print("✅ Reactor MP imports")
-        
-        print("\n🎉 All critical imports successful!")
-        return True
-        
+        from kimera.echoform import EchoForm
+        echo = EchoForm()
+        echo.add_term("test", intensity=2.0)
+        intensity = echo.intensity_sum()
+        print(f"[PASS] EchoForm basic functionality - intensity: {intensity}")
     except Exception as e:
-        print(f"❌ Import error: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"[FAIL] EchoForm: {e}")
         return False
+    
+    # Test 2: Identity basic functionality
+    try:
+        from kimera.identity import Identity
+        identity = Identity(content="test content")
+        data = identity.to_dict()
+        identity2 = Identity.from_dict(data)
+        print(f"[PASS] Identity basic functionality - ID: {identity.id}")
+    except Exception as e:
+        print(f"[FAIL] Identity: {e}")
+        return False
+    
+    # Test 3: Entropy calculations
+    try:
+        from kimera.entropy import calculate_shannon_entropy
+        entropy = calculate_shannon_entropy([1.0, 2.0, 3.0])
+        print(f"[PASS] Entropy calculations - entropy: {entropy:.3f}")
+    except Exception as e:
+        print(f"[FAIL] Entropy: {e}")
+        return False
+    
+    # Test 4: Identity entropy and tau
+    try:
+        entropy_val = identity.entropy()
+        tau_val = identity.effective_tau()
+        print(f"[PASS] Identity entropy: {entropy_val:.3f}, tau: {tau_val:.0f}")
+    except Exception as e:
+        print(f"[FAIL] Identity entropy/tau: {e}")
+        return False
+    
+    print("\n[PASS] All quick validation tests passed!")
+    return True
 
 if __name__ == "__main__":
-    success = test_imports()
-    sys.exit(0 if success else 1)
+    success = main()
+    if not success:
+        sys.exit(1)

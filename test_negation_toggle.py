@@ -6,6 +6,9 @@ import os
 import sys
 sys.path.insert(0, 'src')
 
+from kimera.geoid import init_geoid
+from kimera.resonance import resonance
+
 def test_negation_toggle():
     """Test negation fix toggle"""
     print("🔧 Testing Negation Fix Toggle")
@@ -37,9 +40,9 @@ def test_negation_toggle():
             print(f"  ENABLE_NEGATION_FIX = {ENABLE_NEGATION_FIX}")
             
             for text1, text2, has_negation in test_cases:
-                # Create geoids
-                g1 = Geoid(text1)
-                g2 = Geoid(text2)
+                # Create geoids using init_geoid
+                g1 = init_geoid(text1, "en", ["test"])
+                g2 = init_geoid(text2, "en", ["test"])
                 
                 # Get resonance score
                 score = resonance(g1, g2)

@@ -16,22 +16,29 @@ Features batch processing with latency and memory monitoring for large datasets.
 ```
 kimera_swm_toy/
 ├── src/kimera/              # Core source code
-│   ├── identity.py         # Identity system with SCAR support
-│   ├── storage.py          # DuckDB-based storage layer
+│   ├── identity.py         # Unified Identity system (Geoids + SCARs)
+│   ├── storage.py          # DuckDB-based persistent storage
 │   ├── cls.py              # Continuous Learning System
 │   ├── reactor.py          # Reactor and multiprocessing
 │   ├── echoform.py         # EchoForm implementation
-│   └── ...                 # Other core modules
+│   ├── geoid.py            # Geoid-specific functionality
+│   ├── entropy.py          # Entropy calculations
+│   └── cache.py            # Caching utilities
 ├── tests/                   # Comprehensive test suite
-│   ├── unit/               # Unit tests for individual modules
-│   ├── integration/        # Integration tests for workflows
+│   ├── unit/               # Unit tests (pure, isolated)
+│   ├── integration/        # Integration tests (multi-component)
 │   └── functional/         # End-to-end functional tests
 ├── docs/                   # Documentation and guides
-│   ├── SCAR_IMPLEMENTATION_GUIDE.md
-│   ├── TEST_SUITE_README.md
+│   ├── guides/             # Implementation guides
+│   │   ├── scar_guide.md   # SCAR implementation guide
+│   │   ├── cls_lattice_guide.md # CLS lattice integration
+│   │   ├── vault_guide.md  # Vault usage guide
+│   │   └── benchmark_guide.md # Benchmarking guide
+│   ├── status/             # Development status files
 │   └── ARCHIVE/           # Historical development documents
 ├── scripts/               # Utility and maintenance scripts
-├── vault/                 # Vault subsystem for SCAR operations
+├── vault/                 # Vault subsystem for persistent storage
+├── benchmarks/            # Performance benchmarking suite
 └── .github/workflows/     # CI/CD configuration
 ```
 
@@ -47,7 +54,24 @@ poetry install --sync
 poetry lock
 poetry install
 
-# Run tests
+# Run tests using the new Makefile
+make test              # Run all tests
+make test-unit         # Run unit tests only
+make test-integration  # Run integration tests only
+make test-functional   # Run functional tests only
+
+# Alternative: use pytest directly
+pytest tests/unit/     # Unit tests
+pytest tests/integration/  # Integration tests
+pytest tests/functional/   # Functional tests
+
+# Code quality
+make lint              # Check code quality
+make format            # Format code
+
+# Clean up
+make clean             # Remove cache files
+```
 poetry run pytest tests/ -v
 
 # Run specific test categories
@@ -80,6 +104,61 @@ poetry run python -m kimera.demo --chunk 300
 # Option 4: Environment variable (Unix/Linux/Mac)
 KIMERA_DATASET_PATH=data/contradictions_2k.csv poetry run python -m kimera.demo --chunk 300
 ```
+
+## Development Workflow
+
+### New Organized Structure
+This repository has been reorganized for better maintainability:
+
+- **Tests are categorized**: Unit, integration, and functional tests are now properly separated
+- **Documentation is centralized**: All guides are in `docs/guides/`
+- **Scripts are organized**: Utility scripts moved to `scripts/`
+- **Makefile replaces run_* scripts**: Single entry point for all development tasks
+
+### Running Tests
+```bash
+# Run all tests
+make test
+
+# Run specific test categories
+make test-unit         # Fast, isolated unit tests
+make test-integration  # Multi-component integration tests  
+make test-functional   # End-to-end system tests
+
+# Run specific test files
+pytest tests/unit/test_identity.py
+pytest tests/integration/test_scar_functionality.py
+pytest tests/functional/test_benchmark_quick.py
+```
+
+### Code Quality
+```bash
+# Check code quality
+make lint
+
+# Format code
+make format
+
+# Clean up temporary files
+make clean
+```
+
+### Benchmarking
+```bash
+# Quick benchmark (Kimera only)
+python -m benchmarks.llm_compare --kimera-only --max-pairs 10
+
+# Full benchmark (requires OpenAI API key)
+python -m benchmarks.llm_compare --max-pairs 50
+```
+
+## Legacy Commands (Deprecated)
+
+The numerous `run_*.py` scripts have been replaced by the Makefile. For reference:
+- `run_tests.py` → `make test`
+- `run_quick_test.py` → `make test-unit`
+- `run_verification.py` → `make test-functional`
+- `run_benchmark_quick.py` → `python -m benchmarks.llm_compare --kimera-only`
 
 ### Batch Processing
 The demo now includes performance monitoring:

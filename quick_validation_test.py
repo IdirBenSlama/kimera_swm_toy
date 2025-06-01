@@ -50,11 +50,13 @@ def test_core_engine():
     """Test core Kimera engine."""
     print("\nTesting core engine...")
     try:
-        from kimera.geoid import Geoid
+        from kimera.geoid import init_geoid
+        from kimera.resonance import resonance
         
         # Quick engine test
-        engine = Geoid()
-        result = engine.compare("The sky is blue", "The sky is not blue")
+        geoid1 = init_geoid("The sky is blue", "en", ["test"])
+        geoid2 = init_geoid("The sky is not blue", "en", ["test"])
+        result = resonance(geoid1, geoid2)
         
         print(f"✅ Core engine works: contradiction score = {result:.3f}")
         return True

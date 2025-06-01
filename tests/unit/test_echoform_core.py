@@ -36,4 +36,4 @@ if __name__ == "__main__":
     test_echoform_creation()
     test_echoform_basic_operations()
     test_echoform_configuration()
-    print("✅ All EchoForm core tests passed!")
+    print("[PASS] All EchoForm core tests passed!")

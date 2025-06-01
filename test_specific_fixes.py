@@ -29,7 +29,8 @@ def test_fix_2_storage_api():
         from kimera.storage import LatticeStorage, get_storage, close_storage
         from kimera.echoform import EchoForm, init_geoid
         
-        init_geoid()
+        # Test init_geoid with proper parameters
+        test_geoid = init_geoid("test text", "en", ["test"])
         
         # Test the fixed get_storage function
         storage = get_storage(":memory:")
@@ -72,12 +73,12 @@ def test_fix_4_multiprocessing():
     """Test Fix 4: Multiprocessing pickling"""
     print("🔧 Testing Fix 4: Multiprocessing pickling...")
     try:
-        from kimera.cls import Geoid
+        from kimera.geoid import init_geoid
         from kimera.reactor_mp import ReactorMP
         import pickle
         
-        # Test Geoid pickling (this was failing before)
-        geoid = Geoid()
+        # Test Geoid creation and pickling (this was failing before)
+        geoid = init_geoid("test text", "en", ["test"])
         pickled = pickle.dumps(geoid)
         unpickled = pickle.loads(pickled)
         
@@ -98,7 +99,8 @@ def test_fix_5_storage_metrics():
         from kimera.storage import LatticeStorage
         from kimera.echoform import EchoForm, init_geoid
         
-        init_geoid()
+        # Test init_geoid with proper parameters
+        test_geoid = init_geoid("test text", "en", ["test"])
         
         # Create storage and add some forms
         storage = LatticeStorage(":memory:")

@@ -4,10 +4,13 @@ Very first cut - only what the current tests need.Now with observability and ent
 
 import time
 import threading
+import json
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 from collections import Counter
+from uuid import uuid4
+from datetime import datetime
 
 try:
     import duckdb
@@ -57,6 +60,17 @@ class LatticeStorage:
     
     def __init__(self, db_path: str = "kimera_lattice.db"):
         self.db_path = Path(db_path)
+        
+        # Handle existing file that might not be a valid DuckDB
+        if self.db_path.exists():
+            try:
+                # Test if it's a valid DuckDB file
+                test_conn = duckdb.connect(str(self.db_path))
+                test_conn.close()
+            except duckdb.IOException:
+                # Not a valid DuckDB file - remove it
+                self.db_path.unlink()
+        
         self._conn = duckdb.connect(str(self.db_path), read_only=False)
         self._lock = threading.RLock()
         self._init_schema()
@@ -400,6 +414,106 @@ class LatticeStorage:
                     
                     # Update the identity
                     self.store_identity(identity)
+
+    # ─── Compatibility Stubs ──────────────────────────────────────────────────
+
+    def store_geoid(self, geoid_obj):
+        """
+        Legacy alias: accept a Geoid-type object and store it as an Identity.
+        """
+        # Convert geoid to identity if needed
+        if hasattr(geoid_obj, 'to_dict'):
+            # It's already an Identity-like object
+            identity = geoid_obj
+        else:
+            # Try to convert from legacy geoid format
+            from .identity import Identity
+            identity = Identity(content=str(geoid_obj))
+        
+        self.store_identity(identity)
+
+    def store_scar(self, scar_obj):
+        """
+        Legacy alias: accept a SCAR-type object and store it as an Identity.
+        """
+        # Convert scar to identity if needed
+        if hasattr(scar_obj, 'to_dict'):
+            # It's already an Identity-like object
+            identity = scar_obj
+        else:
+            # Try to convert from legacy scar format
+            from .identity import Identity
+            identity = Identity.create_scar(content=str(scar_obj))
+        
+        self.store_identity(identity)
+
+    def store_echo_form(self, echo_form_obj: EchoForm):
+        """
+        Legacy alias: if tests call store_echo_form, convert echoform to a Geoid identity.
+        """
+        import json
+        from uuid import uuid4
+        from datetime import datetime
+        
+        # Serialize the EchoForm into its raw field
+        raw_json = echo_form_obj.to_dict() if hasattr(echo_form_obj, "to_dict") else {}
+        
+        # Generate a "geoid" identity with that JSON blob as raw
+        from .identity import Identity
+        new_id = f"geoid_{uuid4().hex}"
+        identity = Identity(
+            id=new_id,
+            identity_type="geoid",
+            raw=json.dumps(raw_json),
+            echo="",
+            lang_axis="en",
+            tags=[],
+            vector=None,
+            weight=1.0,
+            related_ids=[],
+            meta={"source": "echo_form", "anchor": echo_form_obj.anchor},
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        self.store_identity(identity)
+
+    def fetch_geoid(self, gid: str) -> Optional[Identity]:
+        """
+        Alias for fetch_identity, since a geoid is just an identity of type 'geoid'.
+        """
+        return self.fetch_identity(gid)
+
+    def get_identity(self, identity_id: str) -> Optional[Identity]:
+        """Alias for fetch_identity for backward compatibility"""
+        return self.fetch_identity(identity_id)
+
+    def search_identities(self, query: str, limit: int = 10) -> List[Identity]:
+        """Search for identities by content"""
+        try:
+            cursor = self._conn.cursor()
+            # Search in both raw and echo fields
+            cursor.execute("""
+                SELECT * FROM identities 
+                WHERE raw LIKE ? OR echo LIKE ?
+                ORDER BY updated_at DESC
+                LIMIT ?
+            """, (f"%{query}%", f"%{query}%", limit))
+            
+            results = []
+            for row in cursor.fetchall():
+                identity = self._row_to_identity(row)
+                if identity:
+                    results.append(identity)
+            
+            return results
+        except Exception as e:
+            print(f"Error searching identities: {e}")
+            return []
+
+    def close(self):
+        """Close the database connection"""
+        if hasattr(self, '_conn') and self._conn:
+            self._conn.close()
 
 
 def get_storage(db_path: str = "kimera_lattice.db") -> LatticeStorage:

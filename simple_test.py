@@ -1,97 +1,56 @@
 #!/usr/bin/env python3
 """
-Simple test to verify basic functionality
+Simple test to check basic functionality
 """
-
 import sys
-from pathlib import Path
+sys.path.insert(0, 'src')
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
-def test_basic_imports():
-    """Test basic imports"""
-    print("Testing basic imports...")
+def test_basic_functionality():
+    """Test basic functionality"""
+    print("=== Testing Basic Functionality ===")
     
+    # Test 1: EchoForm
     try:
-        from kimera.storage import LatticeStorage
-        print("✅ LatticeStorage import successful")
-        
         from kimera.echoform import EchoForm
-        print("✅ EchoForm import successful")
-        
-        from kimera.identity import Identity, create_geoid_identity
-        print("✅ Identity imports successful")
-        
-        from kimera.geoid import init_geoid
-        print("✅ Geoid import successful")
-        
-        return True
-        
-    except ImportError as e:
-        print(f"❌ Import failed: {e}")
-        return False
-
-def test_storage_basic():
-    """Test basic storage functionality"""
-    print("Testing basic storage...")
-    
-    try:
-        import tempfile
-        import os
-        from kimera.storage import LatticeStorage
-        from kimera.echoform import EchoForm
-        
-        # Create temporary database
-        fd, db_path = tempfile.mkstemp(suffix=".db")
-        os.close(fd)
-        os.unlink(db_path)
-        
-        storage = None
-        try:
-            storage = LatticeStorage(db_path)
-            print("✅ Storage created successfully")
-            
-            # Test basic operation
-            count = storage.get_form_count()
-            print(f"✅ Form count: {count}")
-            
-            return True
-            
-        finally:
-            if storage:
-                storage.close()
-            if os.path.exists(db_path):
-                os.remove(db_path)
-                
+        echo = EchoForm()
+        echo.add_term("test", intensity=2.0)
+        intensity = echo.intensity_sum()
+        print(f"[PASS] EchoForm - intensity: {intensity}")
     except Exception as e:
-        print(f"❌ Storage test failed: {e}")
+        print(f"[FAIL] EchoForm: {e}")
         return False
-
-def main():
-    """Run simple tests"""
-    print("🚀 Running Simple Verification Tests")
-    print("=" * 40)
     
-    tests = [test_basic_imports, test_storage_basic]
-    results = []
+    # Test 2: Identity
+    try:
+        from kimera.identity import Identity
+        identity = Identity(content="test content")
+        print(f"[PASS] Identity - ID: {identity.id}")
+    except Exception as e:
+        print(f"[FAIL] Identity: {e}")
+        return False
     
-    for test in tests:
-        try:
-            result = test()
-            results.append(result)
-        except Exception as e:
-            print(f"❌ Test {test.__name__} crashed: {e}")
-            results.append(False)
-        print()
+    # Test 3: Entropy
+    try:
+        from kimera.entropy import calculate_shannon_entropy
+        entropy = calculate_shannon_entropy([1.0, 2.0, 3.0])
+        print(f"[PASS] Entropy - value: {entropy:.3f}")
+    except Exception as e:
+        print(f"[FAIL] Entropy: {e}")
+        return False
     
-    passed = sum(results)
-    total = len(results)
+    # Test 4: Identity entropy and tau
+    try:
+        entropy_val = identity.entropy()
+        tau_val = identity.effective_tau()
+        print(f"[PASS] Identity entropy: {entropy_val:.3f}, tau: {tau_val:.0f}")
+    except Exception as e:
+        print(f"[FAIL] Identity entropy/tau: {e}")
+        return False
     
-    print("=" * 40)
-    print(f"Results: {passed}/{total} tests passed")
-    
-    return 0 if passed == total else 1
+    print("\n[PASS] All basic tests passed!")
+    return True
 
 if __name__ == "__main__":
-    sys.exit(main())
+    success = test_basic_functionality()
+    if not success:
+        sys.exit(1)

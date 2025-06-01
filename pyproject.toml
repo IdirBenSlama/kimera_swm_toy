@@ -29,6 +29,15 @@ pyyaml = "^6.0"
 duckdb = "^0.9.0"
 hypothesis = "^6.0"
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.0"
+black = "^23.0"
+pytest-cov = "^4.0"
+
+[tool.poetry.group.benchmarks.dependencies]
+matplotlib = "^3.7"
+pandas = "^2.0"
+
 [tool.pytest.ini_options]
 markers = [
     "asyncio: marks tests as async (deselect with '-m \"not asyncio\"')",

@@ -63,4 +63,4 @@ if __name__ == "__main__":
     test_identity_scar_creation()
     test_identity_equality()
     test_identity_serialization()
-    print("✅ All Identity unit tests passed!")
+    print("[PASS] All Identity unit tests passed!")

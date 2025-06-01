@@ -32,7 +32,7 @@ def test_basic_functionality():
     try:
         # Initialize geoid
         from kimera.echoform import init_geoid, EchoForm
-        init_geoid()
+        test_geoid = init_geoid("test text", "en", ["test"])
         print("✅ Geoid initialization successful")
         
         # Create EchoForm
@@ -65,7 +65,7 @@ def test_storage_operations():
         from kimera.storage import LatticeStorage, get_storage, close_storage
         from kimera.echoform import EchoForm, init_geoid
         
-        init_geoid()
+        test_geoid = init_geoid("test text", "en", ["test"])
         
         # Test get_storage function
         storage = get_storage(":memory:")
@@ -98,10 +98,10 @@ def test_multiprocessing():
     print("🔍 Testing multiprocessing...")
     try:
         from kimera.reactor_mp import ReactorMP
-        from kimera.cls import Geoid
+        from kimera.geoid import init_geoid
         
         # Create a simple geoid for testing
-        geoid = Geoid()
+        geoid = init_geoid("test text", "en", ["test"])
         
         # Test that ReactorMP can be created (but don't run it)
         reactor = ReactorMP()
