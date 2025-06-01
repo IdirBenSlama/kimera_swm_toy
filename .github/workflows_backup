@@ -1,0 +1,27 @@
+name: Kimera CI
+
+on:
+  push:
+    branches: [ main, 'phase/*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install poetry
+      - run: poetry install
+      - run: poetry run pytest -q
+      - name: Run lattice storage tests
+        run: poetry run pytest tests/test_storage_metrics.py -v
+      - name: Run EchoForm tests  
+        run: poetry run pytest tests/test_echoform_core.py -v
+      - name: Run migration marker tests
+        run: poetry run pytest pytest_migration_marker.py -m migration -v
+      - name: Run P0 integration tests
+        run: python test_p0_integration.py

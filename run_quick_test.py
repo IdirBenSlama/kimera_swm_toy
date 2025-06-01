@@ -1,81 +1,50 @@
 #!/usr/bin/env python3
 """
-Quick test runner to verify our fixes work
+Run the quick verification test
 """
+
 import subprocess
 import sys
 import os
+from pathlib import Path
 
-def run_test(script_name):
-    """Run a test script and return success status"""
-    print(f"\n{'='*50}")
-    print(f"🧪 Running {script_name}")
-    print(f"{'='*50}")
+def run_quick_test():
+    """Run the quick verification test"""
+    print("🚀 Running Quick Verification Test")
+    print("=" * 40)
+    
+    # Change to the project directory
+    project_dir = Path(__file__).parent
+    os.chdir(project_dir)
     
     try:
-        result = subprocess.run([sys.executable, script_name], 
-                              capture_output=True, text=True, timeout=60)
+        # Run the quick test script
+        result = subprocess.run([
+            sys.executable, "quick_verification_test.py"
+        ], capture_output=True, text=True, timeout=60)
         
-        print(f"Exit code: {result.returncode}")
-        
-        if result.stdout:
-            print("\nOutput:")
-            print(result.stdout)
+        print("STDOUT:")
+        print(result.stdout)
         
         if result.stderr:
-            print("\nErrors:")
+            print("\nSTDERR:")
             print(result.stderr)
         
-        success = result.returncode == 0
-        status = "✅ PASSED" if success else "❌ FAILED"
-        print(f"\n{status}")
+        print(f"\nExit code: {result.returncode}")
         
-        return success
+        if result.returncode == 0:
+            print("✅ Quick test passed!")
+        else:
+            print("❌ Quick test failed!")
+            
+        return result.returncode
         
     except subprocess.TimeoutExpired:
-        print("❌ TIMEOUT")
-        return False
+        print("❌ Test timed out after 1 minute")
+        return 1
     except Exception as e:
-        print(f"❌ ERROR: {e}")
-        return False
-
-def main():
-    """Run quick tests"""
-    print("🚀 Quick Test Runner")
-    
-    # Test our fixes
-    tests = [
-        "test_quick_fixes.py",
-        "quick_test_phase193.py", 
-        "test_basic_functionality.py",
-    ]
-    
-    results = []
-    for test in tests:
-        if os.path.exists(test):
-            success = run_test(test)
-            results.append((test, success))
-        else:
-            print(f"⚠️  Test file {test} not found, skipping")
-            results.append((test, False))
-    
-    # Summary
-    print(f"\n{'='*50}")
-    print("📊 SUMMARY")
-    print(f"{'='*50}")
-    
-    passed = 0
-    for test, success in results:
-        status = "✅" if success else "❌"
-        print(f"{status} {test}")
-        if success:
-            passed += 1
-    
-    total = len(results)
-    print(f"\nPassed: {passed}/{total}")
-    
-    return passed == total
+        print(f"❌ Failed to run test: {e}")
+        return 1
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    sys.exit(run_quick_test())

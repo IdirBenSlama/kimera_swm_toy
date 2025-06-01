@@ -4,7 +4,9 @@ import os
 
 files_to_remove = [
     ".github/workflows/ci_fixed.yml",
-    ".github/workflows/ci_final.yml"
+    ".github/workflows/ci_final.yml",
+    ".github/workflows/ci_new.yml",
+    ".github/workflows/ci_clean.yml"
 ]
 
 for file_path in files_to_remove:

@@ -1,7 +1,6 @@
 """
 Persistent lattice storage using DuckDB.
-Very first cut - only what the current tests need.
-"""
+Very first cut - only what the current tests need.Now with observability and entropy tracking."""
 
 import json
 import time
@@ -17,7 +16,16 @@ except ImportError:
     raise ImportError("DuckDB is required for persistent storage. Install with: pip install duckdb")
 
 from .echoform import EchoForm
-
+from .identity import Identity
+# Import observability hooks
+try:
+    from .observability import track_entropy, storage_operations_timer, update_identity_gauges, log_entropy_event
+    OBSERVABILITY_AVAILABLE = True
+except ImportError:
+    # Fallback if prometheus_client is not available
+    OBSERVABILITY_AVAILABLE = False
+    def track_entropy(func):
+        return func
 # Global metrics collection
 _lattice_stats = Counter()
 
@@ -58,6 +66,7 @@ class LatticeStorage:
         """Initialize the database schema"""
         with self._lock:
             with storage_timer("schema_init"):
+                # EchoForms table
                 self._conn.execute("""
                     CREATE TABLE IF NOT EXISTS echoforms (
                         anchor TEXT PRIMARY KEY,
@@ -70,6 +79,19 @@ class LatticeStorage:
                     );
                 """)
                 
+                # Identities table for unified identity model
+                self._conn.execute("""
+                    CREATE TABLE IF NOT EXISTS identities (
+                        id TEXT PRIMARY KEY,
+                        identity_type TEXT NOT NULL,
+                        data JSON NOT NULL,
+                        created_at DOUBLE NOT NULL,
+                        updated_at DOUBLE NOT NULL,
+                        lang_axis TEXT,
+                        entropy_score DOUBLE
+                    );
+                """)
+                
                 # Create indexes for performance
                 self._conn.execute("""
                     CREATE INDEX IF NOT EXISTS idx_echoforms_updated_at 
@@ -79,6 +101,21 @@ class LatticeStorage:
                 self._conn.execute("""
                     CREATE INDEX IF NOT EXISTS idx_echoforms_domain 
                     ON echoforms(domain);
+                """)
+                
+                self._conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_identities_updated_at 
+                    ON identities(updated_at DESC);
+                """)
+                
+                self._conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_identities_type 
+                    ON identities(identity_type);
+                """)
+                
+                self._conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_identities_entropy 
+                    ON identities(entropy_score DESC);
                 """)
     
     def store_form(self, form: EchoForm):
@@ -213,6 +250,157 @@ class LatticeStorage:
             if hasattr(self, '_conn') and self._conn:
                 self._conn.close()
                 self._conn = None
+
+    # Identity storage methods
+    
+    @track_entropy
+    def store_identity(self, identity: Identity):
+        """Store or update an Identity with entropy tracking"""
+        with self._lock:
+            import json
+            data_json = json.dumps(identity.to_dict())
+            now = time.time()
+            entropy_score = identity.entropy()
+            effective_tau = identity.effective_tau()
+            
+            # Log entropy event for observability
+            if OBSERVABILITY_AVAILABLE:
+                log_entropy_event(identity.id, entropy_score, effective_tau, "store")
+            
+            with storage_timer("store_identity"):
+                self._conn.execute("""
+                    INSERT OR REPLACE INTO identities 
+                    (id, identity_type, data, created_at, updated_at, lang_axis, entropy_score)
+                    VALUES (?, ?, ?, 
+                        COALESCE((SELECT created_at FROM identities WHERE id = ?), ?),
+                        ?, ?, ?)
+                """, (
+                    identity.id, identity.identity_type, data_json,
+                    identity.id, now, now, identity.lang_axis, entropy_score
+                ))
+                
+            # Update gauge metrics
+            if OBSERVABILITY_AVAILABLE:
+                update_identity_gauges(self)
+    
+    def fetch_identity(self, identity_id: str) -> Optional[Identity]:
+        """Fetch an Identity by ID"""
+        with storage_timer("fetch_identity"):
+            result = self._conn.execute(
+                "SELECT data FROM identities WHERE id = ?", (identity_id,)
+            ).fetchone()
+        
+        if result:
+            import json
+            data = json.loads(result[0])
+            return Identity.from_dict(data)
+        return None
+    
+    def list_identities(self, limit: int = 10, identity_type: Optional[str] = None, 
+                       lang_axis: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List identities with metadata"""
+        query = """
+            SELECT id, identity_type, created_at, updated_at, lang_axis, entropy_score
+            FROM identities
+        """
+        params = []
+        conditions = []
+        
+        if identity_type:
+            conditions.append("identity_type = ?")
+            params.append(identity_type)
+        
+        if lang_axis:
+            conditions.append("lang_axis = ?")
+            params.append(lang_axis)
+        
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        query += " ORDER BY updated_at DESC LIMIT ?"
+        params.append(limit)
+        
+        with storage_timer("list_identities"):
+            rows = self._conn.execute(query, params).fetchall()
+        
+        return [
+            {
+                "id": row[0],
+                "identity_type": row[1],
+                "created_at": row[2],
+                "updated_at": row[3],
+                "lang_axis": row[4],
+                "entropy_score": row[5]
+            }
+            for row in rows
+        ]
+    
+    def get_identity_count(self, identity_type: Optional[str] = None) -> int:
+        """Get count of stored identities"""
+        with storage_timer("get_identity_count"):
+            if identity_type:
+                result = self._conn.execute(
+                    "SELECT COUNT(*) FROM identities WHERE identity_type = ?", (identity_type,)
+                ).fetchone()
+            else:
+                result = self._conn.execute("SELECT COUNT(*) FROM identities").fetchone()
+        
+        return result[0] if result else 0
+    
+    def find_identities_by_entropy(self, min_entropy: float = 0.0, 
+                                  max_entropy: float = float('inf'), 
+                                  limit: int = 10) -> List[Identity]:
+        """Find identities within entropy range"""
+        with storage_timer("find_identities_by_entropy"):
+            rows = self._conn.execute("""
+                SELECT data FROM identities 
+                WHERE entropy_score >= ? AND entropy_score <= ?
+                ORDER BY entropy_score DESC 
+                LIMIT ?
+            """, (min_entropy, max_entropy, limit)).fetchall()
+        
+        identities = []
+        for row in rows:
+            import json
+            data = json.loads(row[0])
+            identities.append(Identity.from_dict(data))
+        
+        return identities
+    
+    def apply_identity_decay(self, base_tau_days: float = 14.0):
+        """Apply entropy-adjusted time decay to all identities"""
+        now = time.time()
+        
+        with self._lock:
+            with storage_timer("apply_identity_decay"):
+                # Get all identities
+                rows = self._conn.execute(
+                    "SELECT id, data, created_at FROM identities"
+                ).fetchall()
+                
+                for identity_id, data_json, created_at in rows:
+                    import json
+                    identity = Identity.from_dict(json.loads(data_json))
+                    
+                    # Calculate effective tau based on entropy
+                    effective_tau = identity.effective_tau(base_tau_days * 24 * 3600)
+                    age_seconds = now - created_at
+                    
+                    # Apply decay factor
+                    import math
+                    decay_factor = math.exp(-age_seconds / effective_tau)
+                    
+                    # Apply decay to identity weight and related metadata
+                    identity.weight *= decay_factor
+                    
+                    # If identity has terms in meta, decay their intensities
+                    if "terms" in identity.meta:
+                        for term in identity.meta["terms"]:
+                            if "intensity" in term:
+                                term["intensity"] *= decay_factor
+                    
+                    # Update the identity
+                    self.store_identity(identity)
 
 
 def get_storage(db_path: str = "kimera_lattice.db") -> LatticeStorage:

@@ -133,10 +133,10 @@ def reactor_cycle_parallel(geoids: List[Geoid], workers: Optional[int] = None, c
     if platform.system() == "Windows":
         ctx = multiprocessing.get_context('spawn')
         with ctx.Pool(workers) as pool:
-            scar_counts = pool.starmap(_run_cycle, [(batch,) for batch in batches])
+            scar_counts = pool.map(_run_cycle, batches)
     else:
         with Pool(workers) as pool:
-            scar_counts = pool.starmap(_run_cycle, [(batch,) for batch in batches])
+            scar_counts = pool.map(_run_cycle, batches)
 
     # Calculate performance metrics
     delta_mem = psutil.Process(os.getpid()).memory_info().rss / (1024 ** 2) - rss0
@@ -151,3 +151,8 @@ def reactor_cycle_parallel(geoids: List[Geoid], workers: Optional[int] = None, c
         "chunks": len(batches),
         "mode": "multiprocessing"
     }
+
+
+if __name__ == "__main__":
+    from multiprocessing import freeze_support
+    freeze_support()

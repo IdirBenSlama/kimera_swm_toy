@@ -24,6 +24,7 @@ def test_storage_basic_operations():
     
     # Use fresh DuckDB path
     db_path = fresh_duckdb_path()
+    storage = None
     
     try:
         storage = LatticeStorage(db_path)
@@ -70,10 +71,11 @@ def test_storage_basic_operations():
         count_other = storage.get_form_count(domain="other")
         assert count_other == 0
         
-        storage.close()
         print("✅ Basic storage operations test passed")
         
     finally:
+        if storage:
+            storage.close()
         if os.path.exists(db_path):
             os.remove(db_path)
 
@@ -83,6 +85,7 @@ def test_storage_time_decay():
     print("Testing time-decay functionality...")
     
     db_path = fresh_duckdb_path()
+    storage = None
     
     try:
         storage = LatticeStorage(db_path)
@@ -113,10 +116,11 @@ def test_storage_time_decay():
         # Should be less than initial (decay applied)
         assert decayed_intensity < initial_intensity
         
-        storage.close()
         print("✅ Time-decay test passed")
         
     finally:
+        if storage:
+            storage.close()
         if os.path.exists(db_path):
             os.remove(db_path)
 
@@ -126,6 +130,7 @@ def test_storage_pruning():
     print("Testing pruning functionality...")
     
     db_path = fresh_duckdb_path()
+    storage = None
     
     try:
         storage = LatticeStorage(db_path)
@@ -152,10 +157,11 @@ def test_storage_pruning():
         count_after = storage.get_form_count()
         assert count_after == 0
         
-        storage.close()
         print("✅ Pruning test passed")
         
     finally:
+        if storage:
+            storage.close()
         if os.path.exists(db_path):
             os.remove(db_path)
 
@@ -196,10 +202,10 @@ def test_cls_with_persistent_storage():
         cls_count = storage.get_form_count(domain="cls")
         assert cls_count == 2
         
-        close_storage()
         print("✅ CLS with persistent storage test passed")
         
     finally:
+        close_storage()
         if os.path.exists(db_path):
             os.remove(db_path)
 
@@ -209,6 +215,7 @@ def test_cli_commands():
     print("Testing CLI commands...")
     
     db_path = fresh_duckdb_path()
+    storage = None
     
     try:
         # Create some test data first
@@ -221,7 +228,6 @@ def test_cli_commands():
             phase="test"
         )
         storage.store_form(form)
-        storage.close()
         
         # Test CLI list command
         result = subprocess.run([
@@ -239,6 +245,8 @@ def test_cli_commands():
         print(f"stderr: {e.stderr}")
     
     finally:
+        if storage:
+            storage.close()
         if os.path.exists(db_path):
             os.remove(db_path)
 

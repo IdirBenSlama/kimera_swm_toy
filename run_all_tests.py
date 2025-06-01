@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
 """
-Run all tests to verify v0.7.x stabilization
+Comprehensive test runner for P0 verification
 """
+
 import subprocess
 import sys
 import os
-import time
+from pathlib import Path
 
-def run_command(cmd, description):
-    """Run a command and return success status"""
+def run_test_script(script_name, description):
+    """Run a test script and return the result"""
     print(f"\n{'='*60}")
     print(f"🧪 {description}")
-    print(f"{'='*60}")
-    print(f"Command: {cmd}")
-    print()
+    print(f"Running: {script_name}")
+    print('='*60)
     
-    start_time = time.time()
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
-        elapsed = time.time() - start_time
+        result = subprocess.run([
+            sys.executable, script_name
+        ], capture_output=True, text=True, timeout=120)
         
-        print(f"Exit code: {result.returncode}")
-        print(f"Duration: {elapsed:.2f}s")
-        
-        if result.stdout:
-            print("\nSTDOUT:")
-            print(result.stdout)
+        print("STDOUT:")
+        print(result.stdout)
         
         if result.stderr:
             print("\nSTDERR:")
@@ -33,71 +29,67 @@ def run_command(cmd, description):
         
         success = result.returncode == 0
         status = "✅ PASSED" if success else "❌ FAILED"
-        print(f"\n{status}")
+        print(f"\n{status} (exit code: {result.returncode})")
         
         return success
         
     except subprocess.TimeoutExpired:
-        print("❌ TIMEOUT (5 minutes)")
+        print("❌ TIMEOUT - Test took longer than 2 minutes")
+        return False
+    except FileNotFoundError:
+        print(f"❌ FILE NOT FOUND - {script_name} does not exist")
         return False
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"❌ ERROR - Failed to run test: {e}")
         return False
 
 def main():
-    """Run comprehensive test suite"""
-    print("🚀 Kimera v0.7.x Stabilization Test Suite")
-    print("=" * 60)
+    """Run all verification tests"""
+    print("🚀 P0 Comprehensive Verification Suite")
+    print("🎯 Testing all critical fixes and functionality")
     
-    # Test commands in order of importance
+    # Change to project directory
+    project_dir = Path(__file__).parent
+    os.chdir(project_dir)
+    
+    # Define test suite
     tests = [
-        ("python test_quick_fixes.py", "Quick Fixes Validation"),
-        ("python -m pytest tests/test_echoform_core.py -v", "Core EchoForm Tests"),
-        ("python -m pytest tests/test_cls_integration.py -v", "CLS Integration Tests"),
-        ("python -m pytest tests/test_storage_metrics.py -v", "Storage Metrics Tests"),
-        ("python quick_test_phase193.py", "Phase 19.3 Quick Test"),
-        ("python test_basic_functionality.py", "Basic Functionality Test"),
-        ("python validate_all_fixes.py", "All Fixes Validation"),
-        ("python run_comprehensive_test.py", "Comprehensive Test Suite"),
+        ("basic_import_test.py", "Basic Import Test - Core module imports"),
+        ("test_storage_fix.py", "Storage Connection Management - P0 Critical Fix"),
+        ("quick_verification_test.py", "Quick Verification - Basic functionality"),
+        ("test_unified_identity.py", "Unified Identity System - Core feature"),
+        ("test_v073_storage.py", "Storage Test Suite - All storage functions"),
+        ("verify_p0_fixes.py", "P0 Fix Verification - Comprehensive check"),
     ]
     
     results = []
     
-    for cmd, description in tests:
-        success = run_command(cmd, description)
-        results.append((description, success))
-        
-        # If a critical test fails, we might want to continue anyway to see the full picture
-        if not success and "Quick Fixes" in description:
-            print(f"\n⚠️  Critical test failed: {description}")
-            print("Continuing with remaining tests to get full picture...")
+    for script, description in tests:
+        success = run_test_script(script, description)
+        results.append((script, description, success))
     
     # Summary
     print(f"\n{'='*60}")
-    print("📊 TEST SUMMARY")
-    print(f"{'='*60}")
+    print("📊 FINAL RESULTS SUMMARY")
+    print('='*60)
     
     passed = 0
     total = len(results)
     
-    for description, success in results:
+    for script, description, success in results:
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {description}")
+        print(f"{status} {script:<25} - {description}")
         if success:
             passed += 1
     
-    print(f"\nOverall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+    print(f"\n🎯 Overall Result: {passed}/{total} tests passed")
     
     if passed == total:
-        print("\n🎉 ALL TESTS PASSED! v0.7.x is stable!")
-        return True
-    elif passed >= total * 0.8:
-        print(f"\n⚠️  Most tests passed ({passed}/{total}). Minor issues remain.")
-        return True
+        print("🎉 ALL TESTS PASSED! P0 verification successful!")
+        return 0
     else:
-        print(f"\n💥 Significant issues found ({passed}/{total} passed).")
-        return False
+        print("⚠️  Some tests failed. P0 needs attention.")
+        return 1
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    sys.exit(main())
