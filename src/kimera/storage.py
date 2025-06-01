@@ -2,7 +2,6 @@
 Persistent lattice storage using DuckDB.
 Very first cut - only what the current tests need.Now with observability and entropy tracking."""
 
-import json
 import time
 import threading
 from pathlib import Path

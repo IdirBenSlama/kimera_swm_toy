@@ -11,6 +11,30 @@ Features batch processing with latency and memory monitoring for large datasets.
 **New in v0.7.0**: Negation fix with environment variable control and comprehensive benchmarking.
 **New in v0.3.0**: Memory-optimized streaming for handling 10k+ pairs efficiently.
 
+## Repository Structure
+
+```
+kimera_swm_toy/
+├── src/kimera/              # Core source code
+│   ├── identity.py         # Identity system with SCAR support
+│   ├── storage.py          # DuckDB-based storage layer
+│   ├── cls.py              # Continuous Learning System
+│   ├── reactor.py          # Reactor and multiprocessing
+│   ├── echoform.py         # EchoForm implementation
+│   └── ...                 # Other core modules
+├── tests/                   # Comprehensive test suite
+│   ├── unit/               # Unit tests for individual modules
+│   ├── integration/        # Integration tests for workflows
+│   └── functional/         # End-to-end functional tests
+├── docs/                   # Documentation and guides
+│   ├── SCAR_IMPLEMENTATION_GUIDE.md
+│   ├── TEST_SUITE_README.md
+│   └── ARCHIVE/           # Historical development documents
+├── scripts/               # Utility and maintenance scripts
+├── vault/                 # Vault subsystem for SCAR operations
+└── .github/workflows/     # CI/CD configuration
+```
+
 Quick‑start (Windows‑friendly)
 ------------------------------
 ```bash
@@ -24,7 +48,15 @@ poetry lock
 poetry install
 
 # Run tests
-poetry run pytest -q
+poetry run pytest tests/ -v
+
+# Run specific test categories
+poetry run pytest tests/unit/ -v          # Unit tests
+poetry run pytest tests/integration/ -v   # Integration tests
+poetry run pytest tests/functional/ -v    # Functional tests
+
+# Verify SCAR implementation
+python scripts/verify_scar_implementation.py
 
 # Run demo with toy dataset (22 rows)
 poetry run python -m kimera.demo

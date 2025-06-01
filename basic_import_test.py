@@ -4,7 +4,6 @@ Basic import test - just check if we can import the modules
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
@@ -15,7 +14,7 @@ def main():
     print("=" * 30)
     
     print(f"Python version: {sys.version}")
-    print(f"Working directory: {os.getcwd()}")
+    print(f"Working directory: {Path.cwd()}")
     
     # Test 1: Import kimera package
     print("\n1. Testing kimera package import...")

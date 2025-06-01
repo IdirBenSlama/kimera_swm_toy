@@ -10,31 +10,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      - name: Install Poetry
-        run: pip install poetry
-      
-      - name: Install dependencies
-        run: poetry install
-      
-      - name: Run quick tests
-        run: poetry run pytest -q
-      
-      - name: Run lattice storage tests
-        run: poetry run pytest tests/test_storage_metrics.py -v
-      
-      - name: Run EchoForm tests
-        run: poetry run pytest tests/test_echoform_core.py -v
-      
-      - name: Run migration marker tests
-        run: poetry run pytest pytest_migration_marker.py -m migration -v
-      
-      - name: Run P0 integration tests
-        run: python test_p0_integration.py
+      - run: pip install poetry
+      - run: poetry install
+      - name: Run unit tests
+        run: poetry run pytest tests/unit/ -v
+      - name: Run integration tests
+        run: poetry run pytest tests/integration/ -v
+      - name: Run functional tests
+        run: poetry run pytest tests/functional/ -v
+      - name: Run all tests with coverage
+        run: poetry run pytest tests/ --cov=src/kimera --cov-report=term-missing
+      - name: Verify SCAR implementation
+        run: python scripts/verify_scar_implementation.py

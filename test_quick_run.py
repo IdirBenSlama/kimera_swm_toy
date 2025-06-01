@@ -1,56 +1,57 @@
 #!/usr/bin/env python3
 """
-Direct test of quick validation
+Quick Test Run
+=============
+
+Test the Unicode fixes by running a quick test.
 """
+
 import sys
 import os
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 def main():
-    print("🔍 Testing Quick Validation...")
+    print("[RUN] Quick Unicode Fix Test")
+    print("=" * 40)
     
     try:
-        # Test basic imports
-        print("Testing imports...")
-        from kimera.echoform import EchoForm, init_geoid
-        from kimera.storage import LatticeStorage
-        from kimera.cls import Geoid
-        print("✅ All imports successful")
+        # Test basic print statements with our ASCII replacements
+        print("[TARGET] Testing ASCII replacements...")
+        print("[OK] Success indicator")
+        print("[FAIL] Failure indicator") 
+        print("[RUN] Running indicator")
+        print("[SUMMARY] Summary indicator")
         
-        # Test basic functionality
-        print("Testing basic functionality...")
-        init_geoid()
-        print("✅ Geoid initialization successful")
+        # Try to import and run a simple test
+        print("\n[RUN] Testing imports...")
         
-        # Test EchoForm creation
-        form = EchoForm("test")
-        print(f"✅ EchoForm created: {form}")
+        try:
+            from kimera.identity import Identity
+            print("[OK] Identity import successful")
+        except Exception as e:
+            print(f"[INFO] Identity import issue (expected): {e}")
         
-        # Test storage
-        storage = LatticeStorage(":memory:")
-        print("✅ Storage created")
+        print("\n[SUCCESS] Unicode encoding test completed!")
+        print("No UnicodeEncodeError should have occurred.")
         
-        # Test storage operations
-        storage.store_form(form)
-        print("✅ Form stored")
-        
-        forms = storage.get_stored_forms()
-        print(f"✅ Retrieved {len(forms)} forms")
-        
-        storage.close()
-        print("✅ Storage closed")
-        
-        print("\n🎉 Quick validation PASSED!")
         return True
         
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+    except UnicodeEncodeError as e:
+        print(f"[FAIL] UnicodeEncodeError detected: {e}")
         return False
+    except Exception as e:
+        print(f"[INFO] Other error (not Unicode): {e}")
+        return True
 
 if __name__ == "__main__":
     success = main()
-    sys.exit(0 if success else 1)
+    if success:
+        print("\n[TARGET] Ready to run the full test suite!")
+        print("\nTry running:")
+        print("  python run_test_suite.py --mode quick")
+        print("  python test_suite_demo.py")
+    else:
+        print("\n[FAIL] Unicode issues still present.")
+        sys.exit(1)

@@ -13,7 +13,7 @@ from typing import List, Dict, Any, Union
 
 # Import observability hooks
 try:
-    from .observability import track_lattice_operation, log_entropy_event
+    from .observability import track_lattice_operation
     OBSERVABILITY_AVAILABLE = True
 except ImportError:
     # Fallback if prometheus_client is not available

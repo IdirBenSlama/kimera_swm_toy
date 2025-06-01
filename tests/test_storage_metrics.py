@@ -1,10 +1,7 @@
 """
 Test storage metrics collection
 """
-import pytest
-import tempfile
 import os
-from pathlib import Path
 
 from kimera.storage import (
     get_storage, close_storage, 

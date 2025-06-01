@@ -1,63 +1,65 @@
 #!/usr/bin/env python3
-"""Run cache tests and verification."""
+"""Run all tests to verify the import fixes."""
 
 import subprocess
 import sys
-from pathlib import Path
+import os
 
-def run_command(cmd, description):
-    """Run a command and return success status."""
-    print(f"\n{'='*60}")
-    print(f"🧪 {description}")
-    print(f"{'='*60}")
-    
+def run_test(test_file):
+    """Run a single test file."""
+    print(f"🧪 Running {test_file}...")
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        print(result.stdout)
-        if result.stderr:
-            print("STDERR:", result.stderr)
+        result = subprocess.run([sys.executable, test_file], 
+                              capture_output=True, text=True, timeout=30)
         
         if result.returncode == 0:
-            print(f"✅ {description} - PASSED")
+            print(f"  ✅ {test_file} passed")
+            if result.stdout:
+                print(f"     Output: {result.stdout.strip()}")
             return True
         else:
-            print(f"❌ {description} - FAILED (exit code: {result.returncode})")
+            print(f"  ❌ {test_file} failed")
+            if result.stderr:
+                print(f"     Error: {result.stderr.strip()}")
+            if result.stdout:
+                print(f"     Output: {result.stdout.strip()}")
             return False
+            
+    except subprocess.TimeoutExpired:
+        print(f"  ⏰ {test_file} timed out")
+        return False
     except Exception as e:
-        print(f"❌ {description} - ERROR: {e}")
+        print(f"  ❌ Error running {test_file}: {e}")
         return False
 
 def main():
     """Run all tests."""
-    print("🚀 Running Kimera Cache Tests")
-    
-    # Change to project directory
-    project_dir = Path(__file__).parent
+    print("🚀 Running all tests to verify import fixes...\n")
     
     tests = [
-        ("python verify_cache.py", "Cache Verification"),
-        ("python cache_demo.py", "Cache Demo"),
-        ("poetry run pytest tests/test_cache.py::TestEmbeddingCache::test_cache_roundtrip -v", "Basic Cache Test"),
-        ("poetry run pytest tests/test_cache.py::TestResonanceCache::test_resonance_cache_basic -v", "Resonance Cache Test"),
+        'test_import_fixes.py',
+        'test_system_quick.py',
+        'test_vault_and_scar.py'
     ]
     
     passed = 0
-    total = len(tests)
+    for test in tests:
+        if os.path.exists(test):
+            if run_test(test):
+                passed += 1
+            print()
+        else:
+            print(f"⚠️  Test file {test} not found")
     
-    for cmd, description in tests:
-        if run_command(cmd, description):
-            passed += 1
+    print(f"📊 Results: {passed}/{len(tests)} tests passed")
     
-    print(f"\n{'='*60}")
-    print(f"📊 Test Results: {passed}/{total} tests passed")
-    print(f"{'='*60}")
-    
-    if passed == total:
-        print("🎉 All tests passed! Cache implementation is working correctly.")
-        return 0
+    if passed == len(tests):
+        print("🎉 All tests passed! Import fixes are working correctly!")
+        return True
     else:
-        print("❌ Some tests failed. Please check the output above.")
-        return 1
+        print("⚠️  Some tests failed - check the output above")
+        return False
 
 if __name__ == "__main__":
-    sys.exit(main())
+    success = main()
+    sys.exit(0 if success else 1)

@@ -4,7 +4,6 @@ Quick verification test to check if basic functionality is working
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
