@@ -1,0 +1,163 @@
+# Translation Service Configuration for Kimera SWM
+
+# Default service to use
+default_service: mock
+
+# Service-specific configurations
+services:
+  mock:
+    enabled: true
+    # Mock service doesn't need API keys
+    
+  google:
+    enabled: false
+    # Google Cloud Translation API settings
+    api_key: ${GOOGLE_TRANSLATE_API_KEY}  # Set via environment variable
+    # Or use service account credentials
+    credentials_path: ${GOOGLE_APPLICATION_CREDENTIALS}
+    project_id: ${GOOGLE_CLOUD_PROJECT}
+    
+    # API limits and retry settings
+    max_retries: 3
+    retry_delay: 1.0  # seconds
+    timeout: 30.0  # seconds
+    
+    # Quota management
+    requests_per_second: 100
+    characters_per_request: 5000
+    
+  huggingface:
+    enabled: false
+    # Hugging Face model settings
+    model_name: "Helsinki-NLP/opus-mt-en-es"  # Default model
+    device: "cpu"  # or "cuda" if GPU available
+    
+    # Model cache directory
+    cache_dir: ~/.kimera/models
+    
+    # Supported language pairs (model-dependent)
+    language_pairs:
+      - source: en
+        target: es
+        model: "Helsinki-NLP/opus-mt-en-es"
+      - source: en
+        target: fr
+        model: "Helsinki-NLP/opus-mt-en-fr"
+      - source: en
+        target: de
+        model: "Helsinki-NLP/opus-mt-en-de"
+
+# Caching configuration
+cache:
+  enabled: true
+  
+  # Memory cache settings
+  memory:
+    max_items: 10000
+    ttl_seconds: 86400  # 24 hours
+    
+  # Disk cache settings
+  disk:
+    enabled: true
+    max_items: 100000
+    ttl_seconds: 604800  # 7 days
+    cache_dir: ~/.kimera/cache
+    
+  # Cache warming
+  warm_on_startup: false
+  warm_cache_file: ~/.kimera/cache/warm_translations.pkl
+  
+# Language detection settings
+language_detection:
+  # Confidence threshold for accepting detected language
+  confidence_threshold: 0.8
+  
+  # Fallback language if detection fails
+  fallback_language: en
+  
+  # Languages to consider for detection
+  supported_languages:
+    - en  # English
+    - es  # Spanish
+    - fr  # French
+    - de  # German
+    - it  # Italian
+    - pt  # Portuguese
+    - ru  # Russian
+    - ja  # Japanese
+    - zh  # Chinese
+    - ar  # Arabic
+    - hi  # Hindi
+    - ko  # Korean
+    - nl  # Dutch
+    - sv  # Swedish
+    - pl  # Polish
+
+# Batch translation settings
+batch:
+  # Maximum texts per batch request
+  max_batch_size: 100
+  
+  # Use parallel processing for large batches
+  parallel_threshold: 50
+  max_workers: 4
+
+# Performance settings
+performance:
+  # Connection pooling
+  connection_pool_size: 10
+  
+  # Request timeout
+  request_timeout: 30.0
+  
+  # Enable async processing
+  async_enabled: true
+  
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 1000
+    burst_size: 100
+
+# Monitoring and logging
+monitoring:
+  # Log translation requests
+  log_requests: true
+  log_level: INFO
+  
+  # Metrics collection
+  collect_metrics: true
+  metrics_interval: 60  # seconds
+  
+  # Performance tracking
+  track_latency: true
+  track_cache_stats: true
+  
+# Fallback chain
+# If primary service fails, try these in order
+fallback_chain:
+  - google
+  - huggingface
+  - mock
+
+# Quality settings
+quality:
+  # Minimum confidence score to accept translation
+  min_confidence: 0.7
+  
+  # Enable post-processing corrections
+  enable_corrections: true
+  
+  # Language-specific settings
+  language_specific:
+    ja:
+      # Japanese-specific processing
+      preserve_particles: true
+      handle_honorifics: true
+    zh:
+      # Chinese-specific processing
+      traditional_simplified_conversion: true
+    ar:
+      # Arabic-specific processing
+      handle_rtl: true
+      preserve_diacritics: true

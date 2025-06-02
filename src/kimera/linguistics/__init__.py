@@ -1,18 +1,25 @@
 """
-Linguistic analysis module for Kimera SWM
+Kimera Linguistics Module
 
-This module implements multi-language analysis capabilities including
-the "1+3+1" rule from SWM methodology.
+This module provides linguistic analysis and translation capabilities for the
+Spherical Word Methodology implementation.
 """
 
-from .multi_language_analyzer import (
-    MultiLanguageAnalyzer, 
-    LanguageFamily, 
-    select_unrelated_languages
+from .translation_service import (
+    TranslationService,
+    TranslationResult,
+    MockTranslationService,
+    CachedTranslationService,
+    create_translation_service
 )
 
+from .translation_cache import TranslationCache
+
 __all__ = [
-    'MultiLanguageAnalyzer', 
-    'LanguageFamily', 
-    'select_unrelated_languages'
+    'TranslationService',
+    'TranslationResult',
+    'MockTranslationService',
+    'CachedTranslationService',
+    'create_translation_service',
+    'TranslationCache'
 ]
