@@ -81,28 +81,31 @@ def lattice_resolve(identity_a: Union[Identity, Geoid], identity_b: Union[Identi
         entropy_b = identity_b.entropy()
         avg_entropy = (entropy_a + entropy_b) / 2
         
+        current_time = time.time()
         echo = EchoForm(
             anchor=anchor,
             domain="cls",
-            terms=[
-                {
-                    "symbol": "CLS", 
-                    "role": "cls_seed", 
-                    "intensity": 1.0
-                },
-                {
-                    "symbol": "cls_event",
-                    "role": "resonance_trigger",
-                    "intensity": 0.1 * (1 + avg_entropy),  # Entropy-weighted
-                    "timestamp": time.time(),
-                    "event_type": "lattice_resolve_initial",
-                    "entropy_a": entropy_a,
-                    "entropy_b": entropy_b,
-                    "identity_a_id": identity_a.id,
-                    "identity_b_id": identity_b.id
-                }
-            ],
             phase="lattice_active"
+        )
+        
+        # Add terms with timestamps
+        echo.add_term(
+            symbol="CLS",
+            role="cls_seed",
+            intensity=1.0,
+            timestamp=current_time
+        )
+        
+        echo.add_term(
+            symbol="cls_event",
+            role="resonance_trigger",
+            intensity=0.1 * (1 + avg_entropy),
+            timestamp=current_time,
+            event_type="lattice_resolve_initial",
+            entropy_a=entropy_a,
+            entropy_b=entropy_b,
+            identity_a_id=identity_a.id,
+            identity_b_id=identity_b.id
         )
         
         # Store the identities and form
@@ -141,46 +144,53 @@ def create_lattice_form(anchor: str, identity_a: Union[Identity, Geoid], identit
     entropy_b = identity_b.entropy()
     avg_entropy = (entropy_a + entropy_b) / 2
     
+    current_time = time.time()
     form = EchoForm(
         anchor=anchor,
         domain="cls",
-        terms=[
-            {
-                "symbol": f"∂{identity_a.id}", 
-                "role": "identity_a", 
-                "intensity": 0.5 * (1 + entropy_a),  # Entropy-weighted
-                "identity_id": identity_a.id,
-                "raw": identity_a.raw,
-                "entropy": entropy_a
-            },
-            {
-                "symbol": f"∂{identity_b.id}", 
-                "role": "identity_b",
-                "intensity": 0.5 * (1 + entropy_b),  # Entropy-weighted
-                "identity_id": identity_b.id,
-                "raw": identity_b.raw,
-                "entropy": entropy_b
-            },
-            {
-                "symbol": "cls_event",
-                "role": "creation_event",
-                "intensity": 0.1 * (1 + avg_entropy),
-                "timestamp": time.time(),
-                "event_type": "lattice_form_created",
-                "avg_entropy": avg_entropy
-            }
-        ],
-        phase="lattice_active",
-        topology={
-            "lattice_type": "contradiction",
-            "identity_pair": [identity_a.id, identity_b.id],
-            "created_from": "cls_lattice_resolve",
-            "entropy_metrics": {
-                "identity_a_entropy": entropy_a,
-                "identity_b_entropy": entropy_b,
-                "avg_entropy": avg_entropy
-            }
+        phase="lattice_active"
+    )
+    
+    # Set topology
+    form.topology = {
+        "lattice_type": "contradiction",
+        "identity_pair": [identity_a.id, identity_b.id],
+        "created_from": "cls_lattice_resolve",
+        "entropy_metrics": {
+            "identity_a_entropy": entropy_a,
+            "identity_b_entropy": entropy_b,
+            "avg_entropy": avg_entropy
         }
+    }
+    
+    # Add terms with timestamps
+    form.add_term(
+        symbol=f"∂{identity_a.id}",
+        role="identity_a",
+        intensity=0.5 * (1 + entropy_a),
+        timestamp=current_time,
+        identity_id=identity_a.id,
+        raw=identity_a.raw,
+        entropy=entropy_a
+    )
+    
+    form.add_term(
+        symbol=f"∂{identity_b.id}",
+        role="identity_b",
+        intensity=0.5 * (1 + entropy_b),
+        timestamp=current_time,
+        identity_id=identity_b.id,
+        raw=identity_b.raw,
+        entropy=entropy_b
+    )
+    
+    form.add_term(
+        symbol="cls_event",
+        role="creation_event",
+        intensity=0.1 * (1 + avg_entropy),
+        timestamp=current_time,
+        event_type="lattice_form_created",
+        avg_entropy=avg_entropy
     )
     
     # Store the identities and form
@@ -244,11 +254,9 @@ def create_scar_lattice(identity_a: Identity, identity_b: Identity, relationship
     """
     # Create scar identity representing the relationship
     scar_identity = create_scar_identity(
-        raw=f"Relationship: {relationship}",
-        relationships=[
-            {"target_id": identity_a.id, "type": relationship, "strength": 0.8},
-            {"target_id": identity_b.id, "type": relationship, "strength": 0.8}
-        ],
+        id1=identity_a.id,
+        id2=identity_b.id,
+        weight=0.8,
         tags=["lattice_scar", relationship]
     )
     

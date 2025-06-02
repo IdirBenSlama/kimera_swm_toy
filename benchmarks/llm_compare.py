@@ -17,7 +17,11 @@ if not USE_EMOJI:               # strip the flag so argparse ignores it
     sys.argv.remove("--no-emoji")
 
 def log(txt):                   # emoji-aware print helper
-    print(txt if USE_EMOJI else txt.encode('ascii', 'ignore').decode())
+    try:
+        print(txt if USE_EMOJI else txt.encode('ascii', 'ignore').decode())
+    except UnicodeEncodeError:
+        # Fallback for Windows console encoding issues
+        print(txt.encode('ascii', 'ignore').decode())
 # ---- End emoji-safe logging ---------------------------------------------
 
 import csv

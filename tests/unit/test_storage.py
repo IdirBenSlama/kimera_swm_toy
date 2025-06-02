@@ -20,7 +20,8 @@ def temp_storage():
     storage = LatticeStorage(db_path=test_db)
     yield storage
     
-    # Cleanup
+    # Cleanup - close connection first
+    storage.close()
     if os.path.exists(test_db):
         os.remove(test_db)
 

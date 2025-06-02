@@ -490,25 +490,73 @@ class LatticeStorage:
     def search_identities(self, query: str, limit: int = 10) -> List[Identity]:
         """Search for identities by content"""
         try:
-            cursor = self._conn.cursor()
-            # Search in both raw and echo fields
-            cursor.execute("""
-                SELECT * FROM identities 
-                WHERE raw LIKE ? OR echo LIKE ?
-                ORDER BY updated_at DESC
-                LIMIT ?
-            """, (f"%{query}%", f"%{query}%", limit))
+            with storage_timer("search_identities"):
+                # Search in the JSON data field - DuckDB uses json_extract_string
+                rows = self._conn.execute("""
+                    SELECT data FROM identities 
+                    WHERE json_extract_string(data, '$.raw') LIKE ? 
+                       OR json_extract_string(data, '$.echo') LIKE ?
+                    ORDER BY updated_at DESC
+                    LIMIT ?
+                """, (f"%{query}%", f"%{query}%", limit)).fetchall()
             
             results = []
-            for row in cursor.fetchall():
-                identity = self._row_to_identity(row)
-                if identity:
-                    results.append(identity)
+            for row in rows:
+                import json
+                data = json.loads(row[0])
+                identity = Identity.from_dict(data)
+                results.append(identity)
             
             return results
         except Exception as e:
             print(f"Error searching identities: {e}")
             return []
+
+    def get_related_scars(self, identity_id: str) -> List[Identity]:
+        """Get all scar-type identities related to a given identity"""
+        try:
+            # Fallback: iterate through all scars since DuckDB doesn't have JSON array contains operator
+            all_scars = self.list_identities(limit=1000, identity_type="scar")
+            related = []
+            for scar_meta in all_scars:
+                scar = self.fetch_identity(scar_meta["id"])
+                if scar and identity_id in scar.related_ids:
+                    related.append(scar)
+            return related
+        except Exception as e:
+            print(f"Error getting related scars: {e}")
+            return []
+
+    def get_scars_by_type(self, relationship_type: str) -> List[Identity]:
+        """Get all scars with a specific relationship type"""
+        try:
+            with storage_timer("get_scars_by_type"):
+                # Find scars with the specified relationship type in metadata
+                rows = self._conn.execute("""
+                    SELECT data FROM identities 
+                    WHERE identity_type = 'scar' 
+                    AND json_extract_string(json_extract(data, '$.meta'), '$.relationship_type') = ?
+                    ORDER BY updated_at DESC
+                """, (relationship_type,)).fetchall()
+            
+            results = []
+            for row in rows:
+                import json
+                data = json.loads(row[0])
+                identity = Identity.from_dict(data)
+                results.append(identity)
+            
+            return results
+        except Exception as e:
+            print(f"Error getting scars by type: {e}")
+            # Fallback: iterate through all scars
+            all_scars = self.list_identities(limit=1000, identity_type="scar")
+            matching = []
+            for scar_meta in all_scars:
+                scar = self.fetch_identity(scar_meta["id"])
+                if scar and scar.meta.get("relationship_type") == relationship_type:
+                    matching.append(scar)
+            return matching
 
     def close(self):
         """Close the database connection"""

@@ -129,6 +129,7 @@ class Identity:
         if related_ids:
             meta["related_ids"] = related_ids
             
+        # Create the scar identity using the full constructor
         scar = cls(
             id=new_id,
             identity_type="scar",
@@ -142,6 +143,7 @@ class Identity:
             meta=meta,
             created_at=now,
             updated_at=now,
+            # Don't pass content/metadata to avoid legacy behavior
         )
         
         # Add legacy attributes for backward compatibility
@@ -207,15 +209,16 @@ class Identity:
         if data.get("updated_at"):
             updated_at = datetime.fromisoformat(data["updated_at"])
         
-        # Check if this is legacy format with content/metadata
-        if "content" in data:
+        # Check if this is legacy format with content/metadata BUT no identity_type
+        # If identity_type is present, use new format regardless
+        if "content" in data and "identity_type" not in data:
             return cls(
                 content=data["content"],
                 metadata=data.get("metadata", {})
             )
         
         # New format
-        return cls(
+        identity = cls(
             id=data.get("id"),
             identity_type=data.get("identity_type", "geoid"),
             raw=data.get("raw", ""),
@@ -228,6 +231,14 @@ class Identity:
             created_at=created_at,
             updated_at=updated_at
         )
+        
+        # Add legacy attributes if present in data
+        if "content" in data:
+            identity.content = data["content"]
+        if "metadata" in data:
+            identity.metadata = data["metadata"]
+            
+        return identity
     
     def entropy(self) -> float:
         """
