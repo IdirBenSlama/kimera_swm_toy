@@ -2,6 +2,7 @@
 Persistent lattice storage using DuckDB.
 Very first cut - only what the current tests need.Now with observability and entropy tracking."""
 
+import os
 import time
 import threading
 import json
@@ -74,6 +75,11 @@ class LatticeStorage:
         self._conn = duckdb.connect(str(self.db_path), read_only=False)
         self._lock = threading.RLock()
         self._init_schema()
+    
+    @property
+    def conn(self):
+        """Provide backward compatibility for migration scripts"""
+        return self._conn
     
     def _init_schema(self):
         """Initialize the database schema"""
@@ -570,7 +576,12 @@ def get_storage(db_path: str = "kimera_lattice.db") -> LatticeStorage:
     
     with _storage_lock:
         if _storage_instance is None:
-            _storage_instance = LatticeStorage(db_path)
+            # Check if we should use dual-write storage
+            if os.getenv('KIMERA_ID_DUAL_WRITE', '0') == '1':
+                from .storage_dual_write import DualWriteStorage
+                _storage_instance = DualWriteStorage(db_path)
+            else:
+                _storage_instance = LatticeStorage(db_path)
         return _storage_instance
 
 

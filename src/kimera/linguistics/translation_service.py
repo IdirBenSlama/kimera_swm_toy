@@ -356,8 +356,15 @@ def create_translation_service(
                 "Install with: pip install deepl"
             )
     elif service_type == 'huggingface':
-        # TODO: Implement HuggingFaceTranslationService
-        raise NotImplementedError("Hugging Face translation service not yet implemented")
+        try:
+            from .huggingface_translate_service import HuggingFaceTranslationService
+            base_service = HuggingFaceTranslationService(**kwargs)
+        except ImportError as e:
+            logger.error(f"Failed to import Hugging Face service: {e}")
+            raise NotImplementedError(
+                "Hugging Face service requires transformers and torch. "
+                "Install with: pip install transformers torch"
+            )
     else:
         raise ValueError(f"Unknown service type: {service_type}")
     

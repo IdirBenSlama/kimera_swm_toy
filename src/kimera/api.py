@@ -9,6 +9,7 @@ Simple, clear API for using Kimera's capabilities:
 """
 
 from typing import Tuple, List, Dict, Optional
+import asyncio
 from .geoid import init_geoid, Geoid
 from .resonance import resonance as basic_resonance
 from .enhanced_resonance import resonance_v2, resonance_v3
@@ -18,16 +19,18 @@ from .advanced_patterns import extract_patterns_advanced, Pattern
 class Kimera:
     """Main API class for Kimera functionality."""
     
-    def __init__(self, lang: str = "en", resonance_version: int = 3):
+    def __init__(self, lang: str = "en", resonance_version: int = 3, enable_multilingual: bool = False):
         """
         Initialize Kimera.
         
         Args:
             lang: Default language for analysis
             resonance_version: Which resonance algorithm to use (1, 2, or 3)
+            enable_multilingual: Enable multi-language analysis features
         """
         self.lang = lang
         self.resonance_version = resonance_version
+        self.enable_multilingual = enable_multilingual
         
         # Select resonance function
         self.resonance_funcs = {
@@ -36,6 +39,15 @@ class Kimera:
             3: resonance_v3
         }
         self.resonance_func = self.resonance_funcs.get(resonance_version, resonance_v3)
+        
+        # Initialize multi-language analyzer if enabled
+        self._ml_analyzer = None
+        if enable_multilingual:
+            try:
+                from .linguistics.multi_language_analyzer import MultiLanguageAnalyzer
+                self._ml_analyzer = MultiLanguageAnalyzer()
+            except ImportError:
+                print("Warning: Multi-language features not available. Configure translation services.")
     
     def find_resonance(self, text1: str, text2: str) -> Dict[str, any]:
         """
@@ -214,6 +226,106 @@ class Kimera:
             return f"Consider the '{pattern.relation_type}' relationship"
         else:
             return "Explore the underlying patterns"
+    
+    def analyze_multilingual(self, text: str, target_languages: Optional[List[str]] = None) -> Dict[str, any]:
+        """
+        Analyze text across multiple languages to find universal patterns.
+        
+        This advanced feature reveals patterns that transcend linguistic boundaries.
+        
+        Args:
+            text: Text to analyze
+            target_languages: Languages to analyze (default: major languages)
+            
+        Returns:
+            Dictionary with multi-lingual analysis results
+        """
+        if not self._ml_analyzer:
+            return {
+                "error": "Multi-language analysis not enabled. Initialize with enable_multilingual=True"
+            }
+        
+        # Run async analysis in sync context
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            analysis = loop.run_until_complete(
+                self._ml_analyzer.analyze(text, self.lang)
+            )
+            
+            return {
+                "original_text": analysis.original_text,
+                "original_language": analysis.original_language,
+                "translations": {
+                    lang: {
+                        "text": result.translated_text,
+                        "confidence": result.confidence
+                    }
+                    for lang, result in analysis.translations.items()
+                },
+                "patterns_by_language": {
+                    lang: [self._pattern_to_dict(p) for p in patterns]
+                    for lang, patterns in analysis.patterns.items()
+                },
+                "cross_lingual_resonances": analysis.cross_lingual_resonances,
+                "universal_patterns": self._extract_universal_patterns(analysis.patterns)
+            }
+        finally:
+            loop.close()
+    
+    def find_linguistic_invariants(self, concepts: List[str]) -> List[Dict[str, any]]:
+        """
+        Find patterns that remain constant across languages.
+        
+        These invariants reveal the deep structure of concepts that
+        transcends linguistic and cultural boundaries.
+        
+        Args:
+            concepts: List of concepts to analyze
+            
+        Returns:
+            List of linguistic invariants found
+        """
+        if not self._ml_analyzer:
+            return [{
+                "error": "Multi-language analysis not enabled. Initialize with enable_multilingual=True"
+            }]
+        
+        # Run async analysis
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            invariants = loop.run_until_complete(
+                self._ml_analyzer.find_multilingual_insights(concepts)
+            )
+            
+            return [{
+                "concept": inv["concept"],
+                "invariant": inv.get("linguistic_invariant", "No clear invariant found"),
+                "languages_analyzed": inv["languages_analyzed"],
+                "confidence": inv["top_resonance"]["combined_score"] if inv.get("top_resonance") else 0.0,
+                "unique_patterns": inv.get("unique_patterns", [])
+            } for inv in invariants]
+        finally:
+            loop.close()
+    
+    def _extract_universal_patterns(self, patterns_by_lang: Dict[str, List[Pattern]]) -> List[str]:
+        """Extract patterns that appear across multiple languages."""
+        pattern_counts = {}
+        
+        for lang, patterns in patterns_by_lang.items():
+            for pattern in patterns:
+                if hasattr(pattern, 'action') and pattern.action:
+                    pattern_counts[pattern.action] = pattern_counts.get(pattern.action, 0) + 1
+        
+        # Find patterns that appear in 50%+ of languages
+        threshold = len(patterns_by_lang) * 0.5
+        universal = [
+            action for action, count in pattern_counts.items()
+            if count >= threshold
+        ]
+        
+        return universal
 
 
 # Convenience functions for direct use

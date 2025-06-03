@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "timestamp": "2025-06-03T03:19:00.303736",
+    "n_samples": 500,
+    "pressure_threshold": 7.0,
+    "kimera_version": "0.8.0"
+  },
+  "phase_statistics": {
+    "solid": {
+      "count": 0
+    },
+    "liquid": {
+      "count": 0
+    },
+    "gas": {
+      "count": 0
+    },
+    "plasma": {
+      "count": 200,
+      "pressure_mean": 247.96770737851014,
+      "pressure_std": 44.1564055120891,
+      "pressure_min": 180.076969884336,
+      "pressure_max": 544.6415797546506,
+      "coherence_mean": 0.12973280460509784,
+      "coherence_std": 0.08278360521151713,
+      "coherence_min": -0.011565821724943817,
+      "coherence_max": 0.2791785393259488
+    }
+  },
+  "theoretical_tests": {
+    "critical_points": {
+      "plasma_min": 544.6415797546506
+    },
+    "pressure_coherence_correlation": -0.8699128195365803,
+    "negative_correlation_confirmed": "True",
+    "phase_distribution": {
+      "solid": 0,
+      "liquid": 0,
+      "gas": 0,
+      "plasma": 200
+    }
+  },
+  "summary": {
+    "total_geoids": 200,
+    "phases_detected": 1,
+    "mean_pressure": 247.96770737851014,
+    "mean_coherence": 0.12973280460509784
+  }
+}

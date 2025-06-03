@@ -130,13 +130,13 @@ def test_create_lattice_form():
         
         # Check topology
         assert form.topology["lattice_type"] == "contradiction"
-        assert form.topology["geoid_pair"] == [geo_a.gid, geo_b.gid]
+        assert form.topology["identity_pair"] == [geo_a.gid, geo_b.gid]
         
         # Check terms
-        geoid_terms = [term for term in form.terms if term.get("role") in ["geoid_a", "geoid_b"]]
+        identity_terms = [term for term in form.terms if term.get("role") in ["identity_a", "identity_b"]]
         cls_event_terms = [term for term in form.terms if term.get("role") == "creation_event"]
         
-        assert len(geoid_terms) == 2
+        assert len(identity_terms) == 2
         assert len(cls_event_terms) == 1
         
         # Check that form was stored

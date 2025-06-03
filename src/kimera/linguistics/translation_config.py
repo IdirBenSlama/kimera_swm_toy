@@ -1,320 +1,268 @@
 """
-Translation Service Configuration
+Translation Configuration Management
+===================================
 
-This module provides configuration management for translation services,
-including API keys, service selection, and advanced options.
+Handles loading and validation of translation service configuration.
 """
 
 import os
-import json
-import logging
-from typing import Dict, Any, Optional
+import yaml
 from pathlib import Path
-from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
+import logging
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class TranslationConfig:
-    """Configuration for translation services"""
+    """Manages translation service configuration."""
     
-    # Service selection
-    default_service: str = 'mock'
-    fallback_service: str = 'mock'
-    enable_cache: bool = True
-    cache_ttl: int = 86400  # 24 hours
-    
-    # Service-specific configurations
-    google_config: Dict[str, Any] = field(default_factory=lambda: {
-        'credentials_path': None,
-        'project_id': None,
-    })
-    
-    deepl_config: Dict[str, Any] = field(default_factory=lambda: {
-        'api_key': None,
-        'api_type': 'free',  # 'free' or 'pro'
-    })
-    
-    huggingface_config: Dict[str, Any] = field(default_factory=lambda: {
-        'model_name': 'Helsinki-NLP/opus-mt-en-es',
-        'device': 'cpu',  # 'cpu' or 'cuda'
-        'cache_dir': None,
-    })
-    
-    # Advanced options
-    batch_size: int = 50  # Maximum texts per batch
-    timeout: int = 30  # Request timeout in seconds
-    retry_count: int = 3  # Number of retries on failure
-    retry_delay: float = 1.0  # Delay between retries
-    
-    # Language preferences
-    preferred_variants: Dict[str, str] = field(default_factory=lambda: {
-        'en': 'en-US',  # Prefer US English
-        'pt': 'pt-BR',  # Prefer Brazilian Portuguese
-        'zh': 'zh-CN',  # Prefer Simplified Chinese
-    })
-    
-    # Quality settings
-    quality_threshold: float = 0.8  # Minimum confidence threshold
-    use_alternatives: bool = False  # Request alternative translations
-    preserve_formatting: bool = True  # Preserve text formatting
-    
-    @classmethod
-    def from_file(cls, config_path: str) -> 'TranslationConfig':
-        """Load configuration from JSON file"""
-        path = Path(config_path)
-        if not path.exists():
-            logger.warning(f"Config file not found: {config_path}")
-            return cls()
+    def __init__(self, config_path: Optional[str] = None):
+        """
+        Initialize configuration.
         
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+        Args:
+            config_path: Path to configuration file. If None, uses default.
+        """
+        if config_path is None:
+            # Look for config in multiple locations
+            possible_paths = [
+                Path("config/translation_config.yaml"),
+                Path(__file__).parent.parent.parent.parent / "config" / "translation_config.yaml",
+                Path.home() / ".kimera" / "translation_config.yaml",
+            ]
             
-            return cls(**data)
-        except Exception as e:
-            logger.error(f"Error loading config: {e}")
-            return cls()
+            for path in possible_paths:
+                if path.exists():
+                    config_path = str(path)
+                    break
+            else:
+                # Use default configuration
+                config_path = None
+        
+        self.config_path = config_path
+        self._config = self._load_config()
+        self._resolve_environment_variables()
     
-    @classmethod
-    def from_env(cls) -> 'TranslationConfig':
-        """Load configuration from environment variables"""
-        config = cls()
+    def _load_config(self) -> Dict[str, Any]:
+        """Load configuration from file or use defaults."""
+        if self.config_path and Path(self.config_path).exists():
+            try:
+                with open(self.config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                logger.info(f"Loaded translation config from {self.config_path}")
+                return config
+            except Exception as e:
+                logger.error(f"Failed to load config from {self.config_path}: {e}")
         
-        # Service selection
-        config.default_service = os.getenv('KIMERA_TRANSLATION_SERVICE', 'mock')
-        config.enable_cache = os.getenv('KIMERA_TRANSLATION_CACHE', 'true').lower() == 'true'
-        
-        # Google configuration
-        config.google_config['credentials_path'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-        config.google_config['project_id'] = os.getenv('GOOGLE_CLOUD_PROJECT')
-        
-        # DeepL configuration
-        config.deepl_config['api_key'] = os.getenv('DEEPL_API_KEY')
-        config.deepl_config['api_type'] = os.getenv('DEEPL_API_TYPE', 'free')
-        
-        # HuggingFace configuration
-        config.huggingface_config['model_name'] = os.getenv(
-            'HUGGINGFACE_MODEL', 
-            'Helsinki-NLP/opus-mt-en-es'
-        )
-        config.huggingface_config['device'] = os.getenv('HUGGINGFACE_DEVICE', 'cpu')
-        
-        return config
+        # Return default configuration
+        return self._get_default_config()
     
-    def to_file(self, config_path: str):
-        """Save configuration to JSON file"""
-        path = Path(config_path)
-        path.parent.mkdir(parents=True, exist_ok=True)
+    def _get_default_config(self) -> Dict[str, Any]:
+        """Get default configuration."""
+        return {
+            "default_service": "mock",
+            "services": {
+                "mock": {},
+                "google": {
+                    "credentials_path": None,
+                    "project_id": None,
+                    "rate_limit": 10,
+                    "batch_size": 100
+                },
+                "deepl": {
+                    "api_key": None,
+                    "api_endpoint": "https://api-free.deepl.com/v2",
+                    "rate_limit": 5
+                },
+                "huggingface": {
+                    "model_name": "Helsinki-NLP/opus-mt-en-es",
+                    "device": "cpu",
+                    "cache_dir": "~/.cache/huggingface"
+                }
+            },
+            "cache": {
+                "enabled": True,
+                "backend": "memory",
+                "ttl": 86400,
+                "sqlite_path": "cache/translation_cache.db",
+                "redis": {
+                    "host": "localhost",
+                    "port": 6379,
+                    "db": 0,
+                    "password": None
+                }
+            },
+            "languages": {
+                "supported": ["en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh", "ar"],
+                "default_source": None,
+                "default_target": "en"
+            },
+            "performance": {
+                "max_concurrent_requests": 10,
+                "timeout": 30,
+                "retry": {
+                    "max_attempts": 3,
+                    "backoff_factor": 2,
+                    "max_backoff": 60
+                }
+            },
+            "logging": {
+                "level": "INFO",
+                "log_requests": True,
+                "log_cache": True,
+                "log_file": "logs/translation.log"
+            }
+        }
+    
+    def _resolve_environment_variables(self):
+        """Resolve environment variables in configuration."""
+        def resolve_value(value):
+            if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+                env_var = value[2:-1]
+                return os.getenv(env_var, value)
+            elif isinstance(value, dict):
+                return {k: resolve_value(v) for k, v in value.items()}
+            elif isinstance(value, list):
+                return [resolve_value(v) for v in value]
+            return value
         
-        # Convert to dict
-        data = {
-            'default_service': self.default_service,
-            'fallback_service': self.fallback_service,
-            'enable_cache': self.enable_cache,
-            'cache_ttl': self.cache_ttl,
-            'google_config': self.google_config,
-            'deepl_config': self.deepl_config,
-            'huggingface_config': self.huggingface_config,
-            'batch_size': self.batch_size,
-            'timeout': self.timeout,
-            'retry_count': self.retry_count,
-            'retry_delay': self.retry_delay,
-            'preferred_variants': self.preferred_variants,
-            'quality_threshold': self.quality_threshold,
-            'use_alternatives': self.use_alternatives,
-            'preserve_formatting': self.preserve_formatting,
+        self._config = resolve_value(self._config)
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        """
+        Get configuration value by key.
+        
+        Args:
+            key: Dot-separated key path (e.g., "services.google.api_key")
+            default: Default value if key not found
+            
+        Returns:
+            Configuration value
+        """
+        keys = key.split('.')
+        value = self._config
+        
+        for k in keys:
+            if isinstance(value, dict) and k in value:
+                value = value[k]
+            else:
+                return default
+        
+        return value
+    
+    def get_service_config(self, service: str) -> Dict[str, Any]:
+        """Get configuration for a specific service."""
+        return self.get(f"services.{service}", {})
+    
+    def get_cache_config(self) -> Dict[str, Any]:
+        """Get cache configuration."""
+        return self.get("cache", {})
+    
+    def get_supported_languages(self) -> list:
+        """Get list of supported languages."""
+        return self.get("languages.supported", ["en"])
+    
+    def get_default_service(self) -> str:
+        """Get default translation service."""
+        return self.get("default_service", "mock")
+    
+    def is_service_configured(self, service: str) -> bool:
+        """Check if a service is properly configured."""
+        config = self.get_service_config(service)
+        
+        if service == "google":
+            return bool(config.get("credentials_path") or os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+        elif service == "deepl":
+            return bool(config.get("api_key") or os.getenv("DEEPL_API_KEY"))
+        elif service == "huggingface":
+            return True  # Always available if transformers is installed
+        elif service == "mock":
+            return True
+        
+        return False
+    
+    def get_available_services(self) -> list:
+        """Get list of configured and available services."""
+        available = []
+        
+        for service in ["mock", "google", "deepl", "huggingface"]:
+            if self.is_service_configured(service):
+                # Also check if required libraries are installed
+                if service == "google":
+                    try:
+                        import google.cloud.translate_v2
+                        available.append(service)
+                    except ImportError:
+                        pass
+                elif service == "deepl":
+                    try:
+                        import deepl
+                        available.append(service)
+                    except ImportError:
+                        pass
+                elif service == "huggingface":
+                    try:
+                        import transformers
+                        available.append(service)
+                    except ImportError:
+                        pass
+                else:
+                    available.append(service)
+        
+        return available
+    
+    def validate(self) -> Dict[str, Any]:
+        """Validate configuration and return status."""
+        status = {
+            "valid": True,
+            "errors": [],
+            "warnings": [],
+            "available_services": self.get_available_services()
         }
         
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2)
-    
-    def get_service_config(self, service_type: str) -> Dict[str, Any]:
-        """Get configuration for specific service"""
-        if service_type == 'google':
-            return self.google_config
-        elif service_type == 'deepl':
-            return self.deepl_config
-        elif service_type == 'huggingface':
-            return self.huggingface_config
-        else:
-            return {}
-
-
-class TranslationServiceManager:
-    """
-    Manages translation services with fallback and quality control
-    """
-    
-    def __init__(self, config: Optional[TranslationConfig] = None):
-        """
-        Initialize service manager
+        # Check if any service is configured
+        if not status["available_services"]:
+            status["errors"].append("No translation services are properly configured")
+            status["valid"] = False
         
-        Args:
-            config: Translation configuration (uses defaults if None)
-        """
-        self.config = config or TranslationConfig.from_env()
-        self._services = {}
-        self._primary_service = None
-        self._fallback_service = None
-        
-        # Initialize services
-        self._initialize_services()
-    
-    def _initialize_services(self):
-        """Initialize configured translation services"""
-        # Import here to avoid circular imports
-        from .translation_service import create_translation_service
-        
-        # Initialize primary service
-        try:
-            service_config = self.config.get_service_config(self.config.default_service)
-            self._primary_service = create_translation_service(
-                self.config.default_service,
-                enable_cache=self.config.enable_cache,
-                cache_ttl=self.config.cache_ttl,
-                **service_config
-            )
-            self._services[self.config.default_service] = self._primary_service
-            logger.info(f"Initialized primary service: {self.config.default_service}")
-        except Exception as e:
-            logger.error(f"Failed to initialize primary service: {e}")
-        
-        # Initialize fallback service if different
-        if self.config.fallback_service != self.config.default_service:
-            try:
-                fallback_config = self.config.get_service_config(self.config.fallback_service)
-                self._fallback_service = create_translation_service(
-                    self.config.fallback_service,
-                    enable_cache=self.config.enable_cache,
-                    cache_ttl=self.config.cache_ttl,
-                    **fallback_config
+        # Check default service
+        default_service = self.get_default_service()
+        if default_service not in status["available_services"]:
+            if "mock" in status["available_services"]:
+                status["warnings"].append(
+                    f"Default service '{default_service}' not available, will use 'mock'"
                 )
-                self._services[self.config.fallback_service] = self._fallback_service
-                logger.info(f"Initialized fallback service: {self.config.fallback_service}")
-            except Exception as e:
-                logger.error(f"Failed to initialize fallback service: {e}")
-        
-        # Always have mock as ultimate fallback
-        if 'mock' not in self._services:
-            self._services['mock'] = create_translation_service(
-                'mock',
-                enable_cache=self.config.enable_cache
-            )
-    
-    async def translate(
-        self,
-        text: str,
-        target_language: str,
-        source_language: Optional[str] = None,
-        service: Optional[str] = None
-    ):
-        """
-        Translate text with automatic fallback
-        
-        Args:
-            text: Text to translate
-            target_language: Target language code
-            source_language: Source language code (auto-detect if None)
-            service: Specific service to use (uses default if None)
-        """
-        # Select service
-        if service and service in self._services:
-            selected_service = self._services[service]
-        else:
-            selected_service = self._primary_service or self._services.get('mock')
-        
-        # Try primary service
-        try:
-            result = await selected_service.translate(text, target_language, source_language)
-            
-            # Check quality threshold
-            if result.confidence >= self.config.quality_threshold:
-                return result
             else:
-                logger.warning(
-                    f"Translation confidence {result.confidence} below threshold "
-                    f"{self.config.quality_threshold}"
-                )
-        except Exception as e:
-            logger.error(f"Primary translation failed: {e}")
+                status["errors"].append(f"Default service '{default_service}' not available")
+                status["valid"] = False
         
-        # Try fallback service
-        if self._fallback_service and self._fallback_service != selected_service:
+        # Check cache configuration
+        cache_config = self.get_cache_config()
+        if cache_config.get("enabled") and cache_config.get("backend") == "redis":
             try:
-                logger.info("Using fallback translation service")
-                result = await self._fallback_service.translate(
-                    text, target_language, source_language
-                )
-                return result
-            except Exception as e:
-                logger.error(f"Fallback translation failed: {e}")
+                import redis
+            except ImportError:
+                status["warnings"].append("Redis caching enabled but redis-py not installed")
         
-        # Ultimate fallback to mock
-        if 'mock' in self._services:
-            logger.warning("Using mock translation as last resort")
-            return await self._services['mock'].translate(
-                text, target_language, source_language
-            )
-        
-        # If all else fails, return error result
-        from .translation_service import TranslationResult
-        return TranslationResult(
-            source_text=text,
-            translated_text=f"[{target_language}]{text}",
-            source_language=source_language or "auto",
-            target_language=target_language,
-            confidence=0.0,
-            metadata={'error': 'All translation services failed'}
-        )
-    
-    def get_service(self, service_type: str):
-        """Get specific translation service"""
-        return self._services.get(service_type)
-    
-    def list_services(self) -> list:
-        """List available translation services"""
-        return list(self._services.keys())
-    
-    async def get_usage_stats(self) -> Dict[str, Any]:
-        """Get usage statistics from all services"""
-        stats = {}
-        
-        for name, service in self._services.items():
-            if hasattr(service, 'get_usage_stats'):
-                try:
-                    stats[name] = service.get_usage_stats()
-                except Exception as e:
-                    stats[name] = {'error': str(e)}
-            else:
-                # Check if it's a cached service
-                if hasattr(service, 'get_cache_stats'):
-                    stats[name] = service.get_cache_stats()
-        
-        return stats
+        return status
 
 
 # Global configuration instance
-_global_config = None
+_config_instance = None
 
 
-def get_global_config() -> TranslationConfig:
-    """Get global translation configuration"""
-    global _global_config
-    if _global_config is None:
-        # Try to load from file first
-        config_path = os.getenv('KIMERA_TRANSLATION_CONFIG')
-        if config_path and os.path.exists(config_path):
-            _global_config = TranslationConfig.from_file(config_path)
-        else:
-            # Fall back to environment variables
-            _global_config = TranslationConfig.from_env()
+def get_config(config_path: Optional[str] = None) -> TranslationConfig:
+    """Get or create global configuration instance."""
+    global _config_instance
     
-    return _global_config
+    if _config_instance is None:
+        _config_instance = TranslationConfig(config_path)
+    
+    return _config_instance
 
 
-def set_global_config(config: TranslationConfig):
-    """Set global translation configuration"""
-    global _global_config
-    _global_config = config
+def reload_config(config_path: Optional[str] = None):
+    """Reload configuration from file."""
+    global _config_instance
+    _config_instance = TranslationConfig(config_path)

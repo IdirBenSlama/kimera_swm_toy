@@ -1,0 +1,132 @@
+{
+  "metadata": {
+    "timestamp": "2025-06-03T03:22:29.466176",
+    "n_samples": 16,
+    "pressure_threshold": 7.0,
+    "fixed": true
+  },
+  "metrics": [
+    {
+      "gid": "80c687606d348736",
+      "raw": "Water freezes at 0 degrees Celsius",
+      "pressure": 22.02284709457308,
+      "coherence": 0.021206795796751977,
+      "phase": "plasma"
+    },
+    {
+      "gid": "d78ae8725ce94ea2",
+      "raw": "The Earth orbits around the Sun",
+      "pressure": 20.96188457775861,
+      "coherence": 0.06836068543295065,
+      "phase": "plasma"
+    },
+    {
+      "gid": "aaab3f68d961e3bd",
+      "raw": "Gravity attracts objects with mass",
+      "pressure": 21.13879309874028,
+      "coherence": 0.060498084500432016,
+      "phase": "plasma"
+    },
+    {
+      "gid": "5a5aeb554f157b18",
+      "raw": "Light travels at 299,792,458 meters per second",
+      "pressure": 20.89532644324936,
+      "coherence": 0.0713188247444729,
+      "phase": "plasma"
+    },
+    {
+      "gid": "e4f00a01c0091cd2",
+      "raw": "Coffee is the best beverage",
+      "pressure": 17.95873040612787,
+      "coherence": 0.16304913200438023,
+      "phase": "plasma"
+    },
+    {
+      "gid": "0c88d12d0427f627",
+      "raw": "Tea is the best beverage",
+      "pressure": 19.077421749942005,
+      "coherence": 0.15864277568956217,
+      "phase": "plasma"
+    },
+    {
+      "gid": "aa7990d7a966e60a",
+      "raw": "Morning is the most productive time",
+      "pressure": 18.078251468017697,
+      "coherence": 0.15686387941241264,
+      "phase": "plasma"
+    },
+    {
+      "gid": "22d4e76e3678b5a7",
+      "raw": "Night is the most productive time",
+      "pressure": 19.24628571793437,
+      "coherence": 0.15026450504859287,
+      "phase": "plasma"
+    },
+    {
+      "gid": "0068d54d30bca501",
+      "raw": "All swans are white",
+      "pressure": 19.057223167270422,
+      "coherence": 0.1489331896106402,
+      "phase": "plasma"
+    },
+    {
+      "gid": "4e2e67ac0e72b715",
+      "raw": "Black swans exist in Australia",
+      "pressure": 20.004863847978413,
+      "coherence": 0.10681582602361837,
+      "phase": "plasma"
+    },
+    {
+      "gid": "6c4d27c59659ed1c",
+      "raw": "Mathematics is discovered",
+      "pressure": 18.973646260797977,
+      "coherence": 0.16780745287736257,
+      "phase": "plasma"
+    },
+    {
+      "gid": "54893fcc74b87d8b",
+      "raw": "Mathematics is invented",
+      "pressure": 19.065725468099117,
+      "coherence": 0.16371504366397857,
+      "phase": "plasma"
+    },
+    {
+      "gid": "8bc161048d8e3143",
+      "raw": "This statement is false",
+      "pressure": 18.387584606185555,
+      "coherence": 0.13711795633037885,
+      "phase": "plasma"
+    },
+    {
+      "gid": "66a01b9b10ab8b69",
+      "raw": "I always lie",
+      "pressure": 18.739198572468013,
+      "coherence": 0.12149066894004742,
+      "phase": "plasma"
+    },
+    {
+      "gid": "73c324896eca5491",
+      "raw": "The set of all sets contains itself",
+      "pressure": 20.25638024881482,
+      "coherence": 0.09971643338600794,
+      "phase": "plasma"
+    },
+    {
+      "gid": "b8e8b6dfc1f81c36",
+      "raw": "Nothing is everything",
+      "pressure": 19.175172452582046,
+      "coherence": 0.14777011321857572,
+      "phase": "plasma"
+    }
+  ],
+  "summary": {
+    "phase_counts": {
+      "solid": 0,
+      "liquid": 0,
+      "gas": 0,
+      "plasma": 16
+    },
+    "mean_pressure": 19.564958448783727,
+    "mean_coherence": 0.12147321041751033
+  }
+}

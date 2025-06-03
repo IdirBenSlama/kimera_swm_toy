@@ -1,411 +1,444 @@
 """
-Advanced Translation Caching System
+Translation Cache Implementation
+================================
 
-This module provides sophisticated caching mechanisms for translation services including:
-- Persistent cache storage (SQLite)
-- LRU eviction policy
-- Cache warming and preloading
-- Statistics and monitoring
+Provides persistent caching for translation results to improve performance
+and reduce API calls.
 """
 
-import sqlite3
+import os
 import json
-import asyncio
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime, timedelta
+import time
+import sqlite3
+import hashlib
 from pathlib import Path
+from typing import Optional, Dict, Any, Tuple
+from datetime import datetime, timedelta
 import logging
-from dataclasses import asdict
-import pickle
-
-from .translation_service import TranslationResult
+from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
 
 
-class TranslationCache:
-    """Advanced translation cache with persistence and LRU eviction"""
+class CacheBackend(ABC):
+    """Abstract base class for cache backends."""
     
-    def __init__(
-        self,
-        cache_dir: Path = None,
-        max_memory_items: int = 10000,
-        max_disk_items: int = 100000,
-        ttl_seconds: int = 86400 * 7,  # 7 days default
-        enable_persistence: bool = True
-    ):
-        self.cache_dir = cache_dir or Path.home() / '.kimera' / 'cache'
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.max_memory_items = max_memory_items
-        self.max_disk_items = max_disk_items
-        self.ttl_seconds = ttl_seconds
-        self.enable_persistence = enable_persistence
-        
-        # In-memory LRU cache
-        self._memory_cache: Dict[str, Tuple[TranslationResult, datetime]] = {}
-        self._access_order: List[str] = []  # For LRU tracking
-        
-        # Statistics
+    @abstractmethod
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get value from cache."""
+        pass
+    
+    @abstractmethod
+    def set(self, key: str, value: Dict[str, Any], ttl: int):
+        """Set value in cache with TTL."""
+        pass
+    
+    @abstractmethod
+    def delete(self, key: str):
+        """Delete value from cache."""
+        pass
+    
+    @abstractmethod
+    def clear(self):
+        """Clear all cache entries."""
+        pass
+    
+    @abstractmethod
+    def stats(self) -> Dict[str, int]:
+        """Get cache statistics."""
+        pass
+
+
+class MemoryCacheBackend(CacheBackend):
+    """In-memory cache backend."""
+    
+    def __init__(self):
+        self._cache = {}
         self._stats = {
-            'memory_hits': 0,
-            'disk_hits': 0,
-            'misses': 0,
-            'evictions': 0,
-            'disk_writes': 0,
-            'disk_reads': 0
+            "hits": 0,
+            "misses": 0,
+            "sets": 0,
+            "deletes": 0
+        }
+    
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get value from memory cache."""
+        if key in self._cache:
+            entry = self._cache[key]
+            if time.time() < entry["expires"]:
+                self._stats["hits"] += 1
+                return entry["value"]
+            else:
+                # Expired - remove it
+                del self._cache[key]
+        
+        self._stats["misses"] += 1
+        return None
+    
+    def set(self, key: str, value: Dict[str, Any], ttl: int):
+        """Set value in memory cache."""
+        self._cache[key] = {
+            "value": value,
+            "expires": time.time() + ttl
+        }
+        self._stats["sets"] += 1
+    
+    def delete(self, key: str):
+        """Delete value from memory cache."""
+        if key in self._cache:
+            del self._cache[key]
+            self._stats["deletes"] += 1
+    
+    def clear(self):
+        """Clear memory cache."""
+        self._cache.clear()
+    
+    def stats(self) -> Dict[str, int]:
+        """Get cache statistics."""
+        return {
+            **self._stats,
+            "size": len(self._cache)
+        }
+
+
+class SQLiteCacheBackend(CacheBackend):
+    """SQLite-based persistent cache backend."""
+    
+    def __init__(self, db_path: str):
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        self._stats = {
+            "hits": 0,
+            "misses": 0,
+            "sets": 0,
+            "deletes": 0
         }
         
-        # Initialize persistent storage
-        if self.enable_persistence:
-            self._init_db()
+        self._init_db()
     
     def _init_db(self):
-        """Initialize SQLite database for persistent cache"""
-        self.db_path = self.cache_dir / 'translation_cache.db'
-        
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute('''
-                CREATE TABLE IF NOT EXISTS translations (
-                    cache_key TEXT PRIMARY KEY,
-                    source_text TEXT NOT NULL,
-                    translated_text TEXT NOT NULL,
-                    source_language TEXT NOT NULL,
-                    target_language TEXT NOT NULL,
-                    confidence REAL NOT NULL,
-                    metadata TEXT,
-                    created_at TIMESTAMP NOT NULL,
-                    expires_at TIMESTAMP NOT NULL,
-                    access_count INTEGER DEFAULT 1,
-                    last_accessed TIMESTAMP NOT NULL
+        """Initialize SQLite database."""
+        with sqlite3.connect(str(self.db_path)) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS translation_cache (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    expires REAL NOT NULL,
+                    created REAL NOT NULL
                 )
-            ''')
+            """)
             
-            # Create indices for performance
-            conn.execute('''
+            # Create index on expires for cleanup
+            conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_expires 
-                ON translations(expires_at)
-            ''')
-            conn.execute('''
-                CREATE INDEX IF NOT EXISTS idx_languages 
-                ON translations(source_language, target_language)
-            ''')
+                ON translation_cache(expires)
+            """)
+            
             conn.commit()
     
-    async def get(self, cache_key: str) -> Optional[TranslationResult]:
-        """Get translation from cache (memory first, then disk)"""
-        
-        # Check memory cache first
-        if cache_key in self._memory_cache:
-            result, expires = self._memory_cache[cache_key]
-            if datetime.now() < expires:
-                self._stats['memory_hits'] += 1
-                self._update_lru(cache_key)
-                return result
-            else:
-                # Expired - remove from memory
-                self._remove_from_memory(cache_key)
-        
-        # Check disk cache if persistence enabled
-        if self.enable_persistence:
-            result = await self._get_from_disk(cache_key)
-            if result:
-                self._stats['disk_hits'] += 1
-                # Promote to memory cache
-                await self._add_to_memory(cache_key, result)
-                return result
-        
-        self._stats['misses'] += 1
-        return None
-    
-    async def put(
-        self, 
-        cache_key: str, 
-        result: TranslationResult,
-        ttl_override: Optional[int] = None
-    ):
-        """Store translation in cache"""
-        ttl = ttl_override or self.ttl_seconds
-        expires = datetime.now() + timedelta(seconds=ttl)
-        
-        # Add to memory cache
-        await self._add_to_memory(cache_key, result, expires)
-        
-        # Persist to disk if enabled
-        if self.enable_persistence:
-            await self._save_to_disk(cache_key, result, expires)
-    
-    async def _add_to_memory(
-        self, 
-        cache_key: str, 
-        result: TranslationResult,
-        expires: Optional[datetime] = None
-    ):
-        """Add item to memory cache with LRU eviction"""
-        if expires is None:
-            expires = datetime.now() + timedelta(seconds=self.ttl_seconds)
-        
-        # Evict if at capacity
-        if len(self._memory_cache) >= self.max_memory_items:
-            self._evict_lru()
-        
-        self._memory_cache[cache_key] = (result, expires)
-        self._update_lru(cache_key)
-    
-    def _update_lru(self, cache_key: str):
-        """Update LRU access order"""
-        if cache_key in self._access_order:
-            self._access_order.remove(cache_key)
-        self._access_order.append(cache_key)
-    
-    def _evict_lru(self):
-        """Evict least recently used item from memory"""
-        if self._access_order:
-            lru_key = self._access_order.pop(0)
-            if lru_key in self._memory_cache:
-                del self._memory_cache[lru_key]
-                self._stats['evictions'] += 1
-    
-    def _remove_from_memory(self, cache_key: str):
-        """Remove item from memory cache"""
-        if cache_key in self._memory_cache:
-            del self._memory_cache[cache_key]
-        if cache_key in self._access_order:
-            self._access_order.remove(cache_key)
-    
-    async def _get_from_disk(self, cache_key: str) -> Optional[TranslationResult]:
-        """Retrieve translation from disk cache"""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.row_factory = sqlite3.Row
-                cursor = conn.execute('''
-                    SELECT * FROM translations 
-                    WHERE cache_key = ? AND expires_at > ?
-                ''', (cache_key, datetime.now()))
-                
-                row = cursor.fetchone()
-                if row:
-                    # Update access statistics
-                    conn.execute('''
-                        UPDATE translations 
-                        SET access_count = access_count + 1,
-                            last_accessed = ?
-                        WHERE cache_key = ?
-                    ''', (datetime.now(), cache_key))
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get value from SQLite cache."""
+        with sqlite3.connect(str(self.db_path)) as conn:
+            cursor = conn.execute(
+                "SELECT value, expires FROM translation_cache WHERE key = ?",
+                (key,)
+            )
+            row = cursor.fetchone()
+            
+            if row:
+                value_json, expires = row
+                if time.time() < expires:
+                    self._stats["hits"] += 1
+                    return json.loads(value_json)
+                else:
+                    # Expired - remove it
+                    conn.execute("DELETE FROM translation_cache WHERE key = ?", (key,))
                     conn.commit()
-                    
-                    self._stats['disk_reads'] += 1
-                    
-                    # Reconstruct TranslationResult
-                    metadata = json.loads(row['metadata']) if row['metadata'] else {}
-                    return TranslationResult(
-                        source_text=row['source_text'],
-                        translated_text=row['translated_text'],
-                        source_language=row['source_language'],
-                        target_language=row['target_language'],
-                        confidence=row['confidence'],
-                        metadata=metadata
-                    )
-        except Exception as e:
-            logger.error(f"Error reading from disk cache: {e}")
-        
-        return None
-    
-    async def _save_to_disk(
-        self, 
-        cache_key: str, 
-        result: TranslationResult,
-        expires: datetime
-    ):
-        """Save translation to disk cache"""
-        try:
-            # Check disk cache size and evict if necessary
-            await self._evict_disk_if_needed()
             
-            with sqlite3.connect(self.db_path) as conn:
-                metadata_json = json.dumps(result.metadata) if result.metadata else None
-                
-                conn.execute('''
-                    INSERT OR REPLACE INTO translations
-                    (cache_key, source_text, translated_text, source_language,
-                     target_language, confidence, metadata, created_at, 
-                     expires_at, last_accessed)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    cache_key,
-                    result.source_text,
-                    result.translated_text,
-                    result.source_language,
-                    result.target_language,
-                    result.confidence,
-                    metadata_json,
-                    datetime.now(),
-                    expires,
-                    datetime.now()
-                ))
-                conn.commit()
-                self._stats['disk_writes'] += 1
-                
-        except Exception as e:
-            logger.error(f"Error writing to disk cache: {e}")
+            self._stats["misses"] += 1
+            return None
     
-    async def _evict_disk_if_needed(self):
-        """Evict old entries from disk if over capacity"""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                # Get current count
-                count = conn.execute('SELECT COUNT(*) FROM translations').fetchone()[0]
-                
-                if count >= self.max_disk_items:
-                    # Delete oldest 10% of entries
-                    to_delete = int(self.max_disk_items * 0.1)
-                    conn.execute('''
-                        DELETE FROM translations
-                        WHERE cache_key IN (
-                            SELECT cache_key FROM translations
-                            ORDER BY last_accessed ASC
-                            LIMIT ?
-                        )
-                    ''', (to_delete,))
-                    conn.commit()
-                    self._stats['evictions'] += to_delete
-                    
-        except Exception as e:
-            logger.error(f"Error during disk eviction: {e}")
-    
-    async def warm_cache(self, translations: List[Tuple[str, TranslationResult]]):
-        """Pre-populate cache with translations"""
-        for cache_key, result in translations:
-            await self.put(cache_key, result)
-    
-    async def export_cache(self, output_path: Path) -> int:
-        """Export cache to file for backup or transfer"""
-        exported = 0
+    def set(self, key: str, value: Dict[str, Any], ttl: int):
+        """Set value in SQLite cache."""
+        now = time.time()
+        expires = now + ttl
+        value_json = json.dumps(value)
         
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.row_factory = sqlite3.Row
-                cursor = conn.execute('''
-                    SELECT * FROM translations 
-                    WHERE expires_at > ?
-                    ORDER BY access_count DESC
-                ''', (datetime.now(),))
-                
-                cache_data = []
-                for row in cursor:
-                    cache_data.append({
-                        'cache_key': row['cache_key'],
-                        'result': {
-                            'source_text': row['source_text'],
-                            'translated_text': row['translated_text'],
-                            'source_language': row['source_language'],
-                            'target_language': row['target_language'],
-                            'confidence': row['confidence'],
-                            'metadata': json.loads(row['metadata']) if row['metadata'] else {}
-                        },
-                        'expires_at': row['expires_at'],
-                        'access_count': row['access_count']
-                    })
-                    exported += 1
-                
-                # Write to file
-                with open(output_path, 'wb') as f:
-                    f.write(pickle.dumps(cache_data))
-                
-                logger.info(f"Exported {exported} cache entries to {output_path}")
-                
-        except Exception as e:
-            logger.error(f"Error exporting cache: {e}")
+        with sqlite3.connect(str(self.db_path)) as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO translation_cache 
+                (key, value, expires, created) 
+                VALUES (?, ?, ?, ?)
+            """, (key, value_json, expires, now))
+            conn.commit()
         
-        return exported
+        self._stats["sets"] += 1
     
-    async def import_cache(self, input_path: Path) -> int:
-        """Import cache from backup file"""
-        imported = 0
-        
-        try:
-            with open(input_path, 'rb') as f:
-                content = f.read()
-                cache_data = pickle.loads(content)
+    def delete(self, key: str):
+        """Delete value from SQLite cache."""
+        with sqlite3.connect(str(self.db_path)) as conn:
+            cursor = conn.execute(
+                "DELETE FROM translation_cache WHERE key = ?",
+                (key,)
+            )
+            if cursor.rowcount > 0:
+                self._stats["deletes"] += 1
+            conn.commit()
+    
+    def clear(self):
+        """Clear SQLite cache."""
+        with sqlite3.connect(str(self.db_path)) as conn:
+            conn.execute("DELETE FROM translation_cache")
+            conn.commit()
+    
+    def cleanup_expired(self):
+        """Remove expired entries from cache."""
+        with sqlite3.connect(str(self.db_path)) as conn:
+            cursor = conn.execute(
+                "DELETE FROM translation_cache WHERE expires < ?",
+                (time.time(),)
+            )
+            deleted = cursor.rowcount
+            conn.commit()
             
-            for entry in cache_data:
-                result = TranslationResult(**entry['result'])
-                expires = datetime.fromisoformat(entry['expires_at'])
-                
-                if expires > datetime.now():
-                    await self.put(entry['cache_key'], result)
-                    imported += 1
-            
-            logger.info(f"Imported {imported} cache entries from {input_path}")
-            
-        except Exception as e:
-            logger.error(f"Error importing cache: {e}")
-        
-        return imported
+            if deleted > 0:
+                logger.info(f"Cleaned up {deleted} expired cache entries")
     
-    def get_stats(self) -> Dict[str, Any]:
-        """Get cache statistics"""
-        total_requests = (
-            self._stats['memory_hits'] + 
-            self._stats['disk_hits'] + 
-            self._stats['misses']
-        )
-        
-        memory_hit_rate = (
-            self._stats['memory_hits'] / total_requests 
-            if total_requests > 0 else 0
-        )
-        
-        overall_hit_rate = (
-            (self._stats['memory_hits'] + self._stats['disk_hits']) / total_requests
-            if total_requests > 0 else 0
-        )
+    def stats(self) -> Dict[str, int]:
+        """Get cache statistics."""
+        with sqlite3.connect(str(self.db_path)) as conn:
+            cursor = conn.execute("SELECT COUNT(*) FROM translation_cache")
+            size = cursor.fetchone()[0]
+            
+            cursor = conn.execute(
+                "SELECT COUNT(*) FROM translation_cache WHERE expires > ?",
+                (time.time(),)
+            )
+            active = cursor.fetchone()[0]
         
         return {
             **self._stats,
-            'total_requests': total_requests,
-            'memory_hit_rate': memory_hit_rate,
-            'overall_hit_rate': overall_hit_rate,
-            'memory_size': len(self._memory_cache),
-            'memory_capacity': self.max_memory_items,
-            'disk_capacity': self.max_disk_items
+            "size": size,
+            "active": active,
+            "expired": size - active
         }
+
+
+class RedisCacheBackend(CacheBackend):
+    """Redis-based cache backend."""
     
-    async def clear(self):
-        """Clear all cache entries"""
-        self._memory_cache.clear()
-        self._access_order.clear()
+    def __init__(self, host: str = "localhost", port: int = 6379, 
+                 db: int = 0, password: Optional[str] = None):
+        try:
+            import redis
+        except ImportError:
+            raise ImportError(
+                "Redis cache backend requires redis-py. "
+                "Install with: pip install redis"
+            )
         
-        if self.enable_persistence:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute('DELETE FROM translations')
-                conn.commit()
+        self.redis = redis.Redis(
+            host=host,
+            port=port,
+            db=db,
+            password=password,
+            decode_responses=True
+        )
         
+        self._stats = {
+            "hits": 0,
+            "misses": 0,
+            "sets": 0,
+            "deletes": 0
+        }
+        
+        # Test connection
+        try:
+            self.redis.ping()
+        except redis.ConnectionError:
+            raise ConnectionError(f"Failed to connect to Redis at {host}:{port}")
+    
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get value from Redis cache."""
+        value = self.redis.get(f"kimera:translation:{key}")
+        
+        if value:
+            self._stats["hits"] += 1
+            return json.loads(value)
+        
+        self._stats["misses"] += 1
+        return None
+    
+    def set(self, key: str, value: Dict[str, Any], ttl: int):
+        """Set value in Redis cache."""
+        redis_key = f"kimera:translation:{key}"
+        value_json = json.dumps(value)
+        
+        self.redis.setex(redis_key, ttl, value_json)
+        self._stats["sets"] += 1
+    
+    def delete(self, key: str):
+        """Delete value from Redis cache."""
+        redis_key = f"kimera:translation:{key}"
+        if self.redis.delete(redis_key) > 0:
+            self._stats["deletes"] += 1
+    
+    def clear(self):
+        """Clear Redis cache."""
+        # Delete all keys matching our pattern
+        pattern = "kimera:translation:*"
+        cursor = 0
+        
+        while True:
+            cursor, keys = self.redis.scan(cursor, match=pattern, count=100)
+            if keys:
+                self.redis.delete(*keys)
+            if cursor == 0:
+                break
+    
+    def stats(self) -> Dict[str, int]:
+        """Get cache statistics."""
+        # Count keys matching our pattern
+        pattern = "kimera:translation:*"
+        cursor = 0
+        count = 0
+        
+        while True:
+            cursor, keys = self.redis.scan(cursor, match=pattern, count=100)
+            count += len(keys)
+            if cursor == 0:
+                break
+        
+        return {
+            **self._stats,
+            "size": count
+        }
+
+
+class TranslationCache:
+    """High-level translation cache manager."""
+    
+    def __init__(self, backend: str = "memory", ttl: int = 86400, **backend_kwargs):
+        """
+        Initialize translation cache.
+        
+        Args:
+            backend: Cache backend type (memory, sqlite, redis)
+            ttl: Default time-to-live in seconds
+            **backend_kwargs: Backend-specific arguments
+        """
+        self.ttl = ttl
+        self.backend = self._create_backend(backend, **backend_kwargs)
+    
+    def _create_backend(self, backend_type: str, **kwargs) -> CacheBackend:
+        """Create cache backend instance."""
+        if backend_type == "memory":
+            return MemoryCacheBackend()
+        elif backend_type == "sqlite":
+            db_path = kwargs.get("db_path", "cache/translation_cache.db")
+            return SQLiteCacheBackend(db_path)
+        elif backend_type == "redis":
+            return RedisCacheBackend(**kwargs)
+        else:
+            raise ValueError(f"Unknown cache backend: {backend_type}")
+    
+    def _generate_key(self, text: str, source_lang: str, target_lang: str) -> str:
+        """Generate cache key for translation."""
+        # Create a unique key based on text and languages
+        key_data = f"{text}|{source_lang}|{target_lang}"
+        return hashlib.sha256(key_data.encode()).hexdigest()
+    
+    def get(self, text: str, source_lang: str, target_lang: str) -> Optional[Dict[str, Any]]:
+        """
+        Get translation from cache.
+        
+        Returns:
+            Cached translation data or None if not found
+        """
+        key = self._generate_key(text, source_lang, target_lang)
+        return self.backend.get(key)
+    
+    def set(self, text: str, source_lang: str, target_lang: str, 
+            translation: str, metadata: Optional[Dict[str, Any]] = None):
+        """
+        Store translation in cache.
+        
+        Args:
+            text: Source text
+            source_lang: Source language code
+            target_lang: Target language code
+            translation: Translated text
+            metadata: Additional metadata to store
+        """
+        key = self._generate_key(text, source_lang, target_lang)
+        
+        value = {
+            "source_text": text,
+            "translated_text": translation,
+            "source_language": source_lang,
+            "target_language": target_lang,
+            "cached_at": datetime.now().isoformat(),
+            "metadata": metadata or {}
+        }
+        
+        self.backend.set(key, value, self.ttl)
+    
+    def delete(self, text: str, source_lang: str, target_lang: str):
+        """Delete specific translation from cache."""
+        key = self._generate_key(text, source_lang, target_lang)
+        self.backend.delete(key)
+    
+    def clear(self):
+        """Clear all cached translations."""
+        self.backend.clear()
         logger.info("Translation cache cleared")
     
-    async def cleanup_expired(self) -> int:
-        """Remove expired entries from cache"""
-        cleaned = 0
+    def stats(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        stats = self.backend.stats()
         
-        # Clean memory cache
-        expired_keys = []
-        for key, (_, expires) in self._memory_cache.items():
-            if datetime.now() >= expires:
-                expired_keys.append(key)
+        # Calculate hit rate
+        total_requests = stats.get("hits", 0) + stats.get("misses", 0)
+        hit_rate = stats["hits"] / total_requests if total_requests > 0 else 0
         
-        for key in expired_keys:
-            self._remove_from_memory(key)
-            cleaned += 1
+        return {
+            **stats,
+            "hit_rate": hit_rate,
+            "total_requests": total_requests
+        }
+    
+    def cleanup(self):
+        """Perform cache cleanup (remove expired entries)."""
+        if hasattr(self.backend, "cleanup_expired"):
+            self.backend.cleanup_expired()
+
+
+# Factory function for creating cache instances
+def create_translation_cache(config: Dict[str, Any]) -> TranslationCache:
+    """
+    Create translation cache from configuration.
+    
+    Args:
+        config: Cache configuration dictionary
         
-        # Clean disk cache
-        if self.enable_persistence:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute('''
-                    DELETE FROM translations 
-                    WHERE expires_at < ?
-                ''', (datetime.now(),))
-                cleaned += cursor.rowcount
-                conn.commit()
-        
-        logger.info(f"Cleaned up {cleaned} expired cache entries")
-        return cleaned
+    Returns:
+        TranslationCache instance
+    """
+    backend = config.get("backend", "memory")
+    ttl = config.get("ttl", 86400)
+    
+    backend_kwargs = {}
+    
+    if backend == "sqlite":
+        backend_kwargs["db_path"] = config.get("sqlite_path", "cache/translation_cache.db")
+    elif backend == "redis":
+        redis_config = config.get("redis", {})
+        backend_kwargs.update({
+            "host": redis_config.get("host", "localhost"),
+            "port": redis_config.get("port", 6379),
+            "db": redis_config.get("db", 0),
+            "password": redis_config.get("password")
+        })
+    
+    return TranslationCache(backend=backend, ttl=ttl, **backend_kwargs)
