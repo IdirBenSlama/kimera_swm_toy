@@ -79,8 +79,8 @@ Strategic partnership framework:
 - Scale-free scar networks
 
 ### 4. Computational Efficiency
-- 700-1500x faster than GPT-4
-- O(n log n) complexity for core operations
+- Efficient resonance calculation (~3,000 pairs/second)
+- O(n²) complexity for pairwise operations
 - Distributed algorithms for scale
 
 ## Research Methodology

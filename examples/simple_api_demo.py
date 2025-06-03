@@ -47,7 +47,7 @@ def demo_basic_usage():
     stmt1 = "The Earth is round"
     stmt2 = "The Earth is flat"
     
-    result = kimera.detect_contradiction(stmt1, stmt2)
+    result = kimera.analyze_contradiction(stmt1, stmt2)
     
     print(f"Statement 1: '{stmt1}'")
     print(f"Statement 2: '{stmt2}'")
@@ -122,7 +122,7 @@ def demo_quick_functions():
     print(f"\nQuick resonance score: {score:.3f}")
     
     # Quick contradiction check
-    is_contra = detect_contradiction(
+    is_contra = analyze_contradiction(
         "It is raining",
         "It is not raining"
     )

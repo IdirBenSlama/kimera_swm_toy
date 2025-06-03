@@ -461,8 +461,8 @@ Additional Opportunities:
 - **Documentation**: 73% complete
 
 #### Performance Benchmarks
-- **Resonance Detection**: 700-1500x faster than GPT-4
-- **Memory Usage**: 12MB for 1M concepts (target: <10MB)
+- **Resonance Detection**: Efficient resonance calculation (~3,000 pairs/second)
+- **Memory Usage**: ~1.5 GB for 1M concepts
 - **Accuracy**: 94% on analogy tasks (human baseline: 89%)
 - **Scalability**: Tested up to 5M concepts
 
@@ -536,7 +536,7 @@ Additional Opportunities:
 - Scar networks exhibit scale-free properties
 
 ### B.2 Experimental Findings
-- 700-1500x faster than GPT-4 for pattern matching
+- Efficient resonance calculation (~3,000 pairs/second)
 - 70% agreement with human contradiction judgments
 - Novel cross-domain insights in pilot studies
 

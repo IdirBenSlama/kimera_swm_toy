@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from kimera.geoid import init_geoid
 from kimera.thermodynamics_phase import compute_phase_metrics, plot_phase_diagram
-from kimera.thermodynamics import ThermodynamicSystem
+from kimera.thermodynamics_v3 import ThermodynamicSystemV3 as ThermodynamicSystem
 
 SAMPLE_TEXTS = [
     # coherent

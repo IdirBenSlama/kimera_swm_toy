@@ -36,7 +36,7 @@ We now provide:
 - **Baselines**: Word2Vec, GloVe, BERT, GPT-4
 - **Datasets**: Google Analogy, SimLex-999, WordSim-353, custom cross-domain
 - **Results**: SWM achieves 94.1% on analogies (vs 91.2% GPT-4, 89% human)
-- **Performance**: 700-1500x speedup over GPT-4, 100x memory reduction
+- **Performance**: Efficient processing (no external benchmarks available)
 
 Table 6.2.1 shows accuracy across all tasks, while Table 6.2.2 details performance metrics.
 
@@ -68,7 +68,7 @@ The spectral gap Δ = λ₁ - λ₂ quantifies semantic coherence:
 
 This enables automatic detection of semantic boundaries and phase transitions.
 
-### Comment 2.2: "Memory claims seem unrealistic. How is 12MB for 1M concepts possible?"
+### Comment 2.2: "Memory claims seem unrealistic. How is ~1.5 GB for 1M concepts
 
 **Response**: We have added detailed storage analysis:
 
@@ -132,7 +132,7 @@ Each theoretical prediction now has corresponding empirical support.
 1. **Problem**: Vector spaces cannot capture topological semantic structure
 2. **Solution**: Spherical geometry + resonance dynamics + spectral analysis
 3. **Contribution**: First topological theory of meaning with O(n log n) complexity
-4. **Impact**: Enables 700-1500x speedup while exceeding human accuracy
+4. **Impact**: Enables Efficient processing (no external benchmarks available)
 
 ### Comment M.2: "The title could be more descriptive of the actual contribution."
 

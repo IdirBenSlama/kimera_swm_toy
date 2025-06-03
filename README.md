@@ -1,204 +1,150 @@
-# Kimera SWM - Spherical Word Methodology Implementation
+# Kimera SWM - Experimental Semantic Analysis System
 
-A Python implementation of the Spherical Word Methodology (SWM) for finding deep structural similarities and hidden connections across different domains of knowledge.
+**⚠️ IMPORTANT**: This is an experimental research prototype. Previous documentation contained unverified performance claims that have been removed. See [HONEST_README.md](docs/HONEST_README.md) for verified capabilities.
 
-## What is Kimera?
+## What Kimera Actually Does
 
-Kimera is a knowledge analysis system that implements SWM principles to:
-- **Find Resonance**: Discover deep structural similarities between concepts across different domains
-- **Extract Patterns**: Identify functional, structural, dynamic, and relational patterns in text
-- **Detect Contradictions**: Identify logical incompatibilities between statements
-- **Generate Insights**: Find creative solutions by discovering analogies across domains
+Kimera is an experimental system for analyzing semantic relationships between texts using geometric representations. It provides:
 
-## Key Features
+- **Semantic Similarity**: Measures how related two texts are (verified working)
+- **Contradiction Detection**: Identifies opposing statements (use v2_fixed version)
+- **Pattern Analysis**: Groups texts by relationships (experimental)
+- **Spectral Analysis**: Mathematical analysis of text collections (small scale only)
 
-### 🔍 Resonance Detection
-Find hidden connections between seemingly unrelated concepts:
-```python
-from kimera.api import Kimera
+## Verified Capabilities
 
-kimera = Kimera()
-result = kimera.find_resonance(
-    "The heart pumps blood through the body",
-    "The router directs data through the network"
-)
-print(f"Resonance: {result['score']:.3f}")  # 0.7+ indicates strong similarity
-```
+✅ **Working Features**:
+- Resonance calculation distinguishes similar (0.79) from different (0.07) texts
+- Fixed contradiction detection achieves 90% accuracy on basic tests
+- Spectral analysis works for collections < 100 texts
+- Thermodynamic phase classification (after complete redesign)
 
-### 🧩 Pattern Extraction
-Extract four types of patterns aligned with SWM:
-- **Functional**: What does it do? (actions, purposes)
-- **Structural**: How is it organized? (components, hierarchy)
-- **Dynamic**: How does it change? (processes, flows)
-- **Relational**: How does it connect? (dependencies, similarities)
+❌ **Not Working**:
+- Original contradiction.py (fails basic tests - use contradiction_v2_fixed.py)
+- Original thermodynamics.py (produces only one phase - use thermodynamics_v3.py)
+- Large-scale processing (memory/performance issues)
 
-```python
-patterns = kimera.extract_patterns("Information flows through the network")
-# Returns functional and dynamic patterns
-```
+## Actual Performance
 
-### ⚡ Contradiction Detection
-Identify logical contradictions (separate from resonance):
-```python
-result = kimera.detect_contradiction(
-    "The Earth is round",
-    "The Earth is flat"
-)
-print(f"Contradiction: {result['is_contradiction']}")  # True
-```
+Based on empirical measurements:
+- **Speed**: ~3,000 text pairs/second for similarity calculation
+- **Memory**: ~1.5 MB per 1,000 texts (1.5 GB for 1M texts)
+- **Scaling**: O(n²) for pairwise operations
+- **Accuracy**: Varies by task, no comprehensive benchmarks exist
 
-### 💡 Cross-Domain Insights
-Discover insights by finding resonances across domains:
-```python
-insights = kimera.find_cross_domain_insights(
-    "How to improve traffic flow",
-    ["Blood flows through arteries", "Data flows through networks", ...]
-)
-```
+**Note**: Claims of "Efficient resonance calculation (~3,000 pairs/second)
 
 ## Installation
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/yourusername/kimera_swm_toy.git
 cd kimera_swm_toy
 
-# Install dependencies
-pip install -r requirements.txt
+# Install with poetry (recommended)
+pip install poetry
+poetry install
 
-# Optional: Install spaCy for advanced pattern extraction
-pip install spacy
-python -m spacy download en_core_web_sm
+# Or with pip
+pip install -r requirements.txt
 ```
 
-## Quick Start
+## Quick Start (Using Working Components)
 
 ```python
-from kimera.api import Kimera
+from kimera.geoid import init_geoid
+from kimera.resonance import resonance
+from kimera.contradiction_v2_fixed import analyze_contradiction
 
-# Initialize Kimera
-kimera = Kimera()
+# Create semantic representations
+g1 = init_geoid("The sky is blue")
+g2 = init_geoid("The sky is red")
 
-# Find resonance between concepts
-result = kimera.find_resonance(
-    "Plants grow towards sunlight",
-    "Companies grow towards profit"
-)
-print(f"Resonance: {result['score']:.3f}")
-print(f"Interpretation: {result['interpretation']}")
+# Measure similarity (working)
+similarity = resonance(g1, g2)
+print(f"Similarity: {similarity:.3f}")  # ~0.67
 
-# Extract patterns
-patterns = kimera.extract_patterns("The CEO leads the organization")
-for p in patterns:
-    print(f"Found {p['type']} pattern: {p.get('action', p.get('organization'))}")
-
-# Detect contradictions
-contra = kimera.detect_contradiction(
-    "Fire is hot",
-    "Fire is cold"
-)
-print(f"Is contradiction: {contra['is_contradiction']}")
+# Detect contradiction (use fixed version)
+analysis = analyze_contradiction(g1, g2)
+print(f"Contradiction: {analysis.is_contradiction}")  # True
+print(f"Type: {analysis.contradiction_type}")  # "antonym"
 ```
 
-## Architecture
+## Important Migration Notes
 
-Kimera implements a modular architecture aligned with SWM principles:
+If you have existing code, you must migrate from broken to working components:
 
+```python
+# ❌ OLD (broken)
+from kimera.contradiction import detect_contradiction
+from kimera.thermodynamics import ThermodynamicSystem
+
+# ✅ NEW (working)
+from kimera.contradiction_v2_fixed import analyze_contradiction
+from kimera.thermodynamics_v3 import ThermodynamicSystemV3
 ```
-kimera/
-├── geoid.py          # Knowledge unit representation
-├── resonance.py      # Basic semantic resonance
-├── enhanced_resonance.py  # Pattern-based resonance
-├── advanced_patterns.py   # Four SWM pattern types
-├── contradiction.py  # Logical contradiction detection
-└── api.py           # Unified API interface
-```
 
-## Benchmarks
+See [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md) for details.
 
-Run benchmarks to test Kimera's performance:
+## Limitations
 
-```bash
-# Test resonance detection
-python benchmarks/resonance_benchmark.py
-
-# Test contradiction detection
-python benchmarks/llm_compare.py --kimera-only
-
-# Compare with GPT-4o (requires API key)
-python benchmarks/llm_compare.py --api-key YOUR_KEY
-```
+- **Memory Intensive**: ~1.5 GB per million texts (not 12 MB as previously claimed)
+- **Quadratic Scaling**: O(n²) for pairwise operations (not O(n log n))
+- **No GPU Support**: CPU only
+- **Limited Scale**: Spectral analysis practical only for n < 100
+- **No Benchmarks**: No comparison with standard NLP systems
 
 ## Examples
 
-Explore Kimera's capabilities:
-
+Working examples:
 ```bash
-# Basic resonance demo
-python examples/resonance_demo.py
+# Test contradiction detection (fixed version)
+python experiments/test_contradiction_fixed.py
 
-# Advanced pattern extraction
-python examples/advanced_resonance_demo.py
+# Test thermodynamics (v3)
+python experiments/test_thermodynamics_v3.py
 
-# Simple API usage
-python examples/simple_api_demo.py
+# Run honest benchmarks
+python benchmarks/honest_benchmark.py
 ```
 
-## Performance
+## Development Status
 
-- **Speed**: 700-1500x faster than GPT-4o for pattern analysis
-- **Accuracy**: 
-  - Resonance detection: Optimized for cross-domain similarity
-  - Contradiction detection: 70% agreement with GPT-4o
-  - Pattern extraction: Covers all four SWM pattern types
-
-## Use Cases
-
-1. **Innovation & Problem Solving**: Find analogies from nature or other domains
-2. **Knowledge Discovery**: Identify hidden connections in research
-3. **Creative Writing**: Discover unexpected metaphors and connections
-4. **Education**: Help students understand concepts through analogies
-5. **System Design**: Learn from patterns in other domains
-
-## Development Roadmap
-
-### ✅ Completed
-- Basic resonance detection
-- Pattern extraction (functional, structural, dynamic, relational)
-- Contradiction detection module
-- Unified API
-- Comprehensive examples
-
-### 🚧 In Progress
-- Multi-language support (SWM "1+3+1" rule)
-- Advanced pattern matching algorithms
-- Web interface
-
-### 📋 Planned
-- Full Geoid implementation (all SWM dimensions)
-- Dynamic knowledge evolution (scars, drift, voids)
-- Kimera Kernel cognitive architecture
-- Real-world application showcases
+This is experimental research software. Many theoretical claims remain unproven:
+- "Semantic manifolds" - mathematical metaphor, not proven theory
+- "Thermodynamic pressure" - visualization technique, not physical quantity
+- "Scar networks" - conceptual idea, limited implementation
 
 ## Contributing
 
-Contributions are welcome! Please read our contributing guidelines and submit pull requests.
+We welcome contributions that:
+- Fix broken components
+- Add proper benchmarks
+- Improve actual performance
+- Document real capabilities
+
+Please do not submit:
+- Unverified performance claims
+- Theoretical assertions without proof
+- Marketing hype
 
 ## Citation
 
-If you use Kimera in your research, please cite:
+If you use Kimera in research, please note its experimental status:
 ```
-@software{kimera2024,
-  title = {Kimera: A Spherical Word Methodology Implementation},
+@software{kimera_swm,
+  title = {Kimera SWM: Experimental Semantic Analysis System},
   year = {2024},
-  url = {https://github.com/yourusername/kimera_swm_toy}
+  note = {Experimental research prototype with limited validation}
 }
 ```
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see LICENSE file
 
-## Acknowledgments
+## Disclaimer
 
-Based on the Spherical Word Methodology (SWM) framework, which emphasizes finding deep structural patterns and connections across different domains of knowledge.
+Previous versions of this documentation contained unverified performance claims. This version reflects actual measured capabilities. Always validate results independently for your use case.
+
+For the original (unverified) claims, see the git history. For verified capabilities, see [benchmarks/honest_benchmark.py](benchmarks/honest_benchmark.py).

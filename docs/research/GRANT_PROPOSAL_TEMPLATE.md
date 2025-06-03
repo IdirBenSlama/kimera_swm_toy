@@ -5,7 +5,7 @@
 ## Project Summary
 
 ### Overview
-We propose to develop and validate a revolutionary approach to semantic understanding based on topological and thermodynamic principles. The Kimera Spherical Word Methodology (SWM) represents meaning as trajectories on semantic manifolds, uses contradiction as a generative force, and maintains immutable traces (scars) of all cognitive operations. This approach promises to bridge the gap between symbolic and neural AI while providing unprecedented speed (700-1500x faster than GPT-4) and interpretability.
+We propose to develop and validate a revolutionary approach to semantic understanding based on topological and thermodynamic principles. The Kimera Spherical Word Methodology (SWM) represents meaning as trajectories on semantic manifolds, uses contradiction as a generative force, and maintains immutable traces (scars) of all cognitive operations. This approach promises to bridge the gap between symbolic and neural AI while providing unprecedented speed (Efficient resonance calculation (~3,000 pairs/second)
 
 ### Intellectual Merit
 This research will establish the first rigorous mathematical framework for topological semantics, proving fundamental theorems about meaning representation, developing novel algorithms for semantic computation, and validating the approach through comprehensive experiments. The work draws from differential geometry, thermodynamics, and category theory to create a unified theory of meaning that could transform our understanding of language and cognition.

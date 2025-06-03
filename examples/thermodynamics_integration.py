@@ -106,7 +106,7 @@ def demonstrate_integrated_workflow():
     # Check specific contradictions
     for name, other in [("idealism", geoids["idealism"]), 
                        ("quantum", geoids["quantum"])]:
-        is_contra, conf, reason = detect_contradiction(
+        is_contra, conf, reason = analyze_contradiction(
             geoids["materialism"], other
         )
         print(f"\nMaterialism vs {name}:")

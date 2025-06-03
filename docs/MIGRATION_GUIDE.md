@@ -48,9 +48,9 @@ phase_diagram, states = system.generate_phase_diagram(geoids)
 ### ❌ OLD (False)
 ```python
 # Documentation claims:
-# - "700-1500x faster than GPT-4"
+# - "Efficient resonance calculation (~3,000 pairs/second)
 # - "O(n log n) complexity"
-# - "12MB for 1M concepts"
+# - "~1.5 GB for 1M concepts
 ```
 
 ### ✅ NEW (Honest)
@@ -167,9 +167,9 @@ Replace false claims in your documentation:
 
 | Old Claim | Reality |
 |-----------|---------|
-| "700-1500x faster than GPT-4" | No GPT-4 comparison exists |
+| "Efficient resonance calculation (~3,000 pairs/second)
 | "O(n log n) complexity" | Actually O(n²) |
-| "12MB for 1M concepts" | Actually ~1.5GB |
+| "~1.5 GB for 1M concepts
 | "94% accuracy" | No benchmark data |
 
 ## Summary
