@@ -50,7 +50,7 @@ class ThermodynamicSystemV3:
     
     def __init__(self, 
                  min_contradiction_confidence: float = 0.7,
-                 min_coherence_threshold: float = 0.4):
+                 min_coherence_threshold: float = 0.2):
         self.min_contradiction_confidence = min_contradiction_confidence
         self.min_coherence_threshold = min_coherence_threshold
         

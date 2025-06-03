@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "timestamp": "2025-06-03T04:14:25.270016",
+    "version": "0.8.0",
+    "system": "Kimera SWM"
+  },
+  "benchmarks": {
+    "resonance_speed": [
+      {
+        "n": 10,
+        "pairs": 45,
+        "time": 0.015002250671386719,
+        "pairs_per_second": 2999.549933252813
+      },
+      {
+        "n": 50,
+        "pairs": 1225,
+        "time": 0.3703467845916748,
+        "pairs_per_second": 3307.710640314109
+      },
+      {
+        "n": 100,
+        "pairs": 4950,
+        "time": 1.396674394607544,
+        "pairs_per_second": 3544.133134473992
+      },
+      {
+        "n": 500,
+        "pairs": 4950,
+        "time": 1.4407122135162354,
+        "pairs_per_second": 3435.800677998638
+      },
+      {
+        "n": 1000,
+        "pairs": 4950,
+        "time": 1.7098345756530762,
+        "pairs_per_second": 2895.0169042577313
+      }
+    ],
+    "contradiction_detection": {
+      "total_cases": 10,
+      "correct": 9,
+      "accuracy": 0.9,
+      "total_time": 0.19872689247131348,
+      "time_per_pair": 0.01987268924713135
+    },
+    "spectral_analysis": [
+      {
+        "n": 10,
+        "matrix_size": 100,
+        "time": 0.01787877082824707,
+        "time_per_element": 0.0001787877082824707
+      },
+      {
+        "n": 20,
+        "matrix_size": 400,
+        "time": 0.0770871639251709,
+        "time_per_element": 0.00019271790981292725
+      },
+      {
+        "n": 50,
+        "matrix_size": 2500,
+        "time": 0.4257485866546631,
+        "time_per_element": 0.00017029943466186523
+      },
+      {
+        "n": 100,
+        "matrix_size": 10000,
+        "time": 1.6373906135559082,
+        "time_per_element": 0.0001637390613555908
+      }
+    ],
+    "memory_usage": {
+      "single_geoid_bytes": 1592,
+      "vector_dimensions": 384,
+      "size_1k_kb": 1554.6875,
+      "size_1m_mb": 1518.24951171875,
+      "size_1b_gb": 1482.6655387878418
+    },
+    "thermodynamic_phases": {
+      "n_texts": 9,
+      "time": 0.11189770698547363,
+      "phases_detected": 2,
+      "phase_distribution": {
+        "solid": 3,
+        "liquid": 6
+      }
+    }
+  }
+}
